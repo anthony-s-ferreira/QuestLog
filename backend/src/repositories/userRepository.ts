@@ -1,9 +1,11 @@
-import { User } from "../domain/entities/User";
+import { User, UserType } from "../models/User";
 
-export interface UserRepository {
-    create(user: User): Promise<User>;
-    getByEmail(email: string): Promise<User | null>;
-    getAll(): Promise<User[]>;
-    update(user: User): Promise<User | null>;
-    deleteByEmail(email: string): Promise<boolean>;
+export class UserRepository {
+    async createUser(name: string, email: string, password: string, type: UserType) {
+        return await User.create({ name, email, password, type});
+    }
+
+    async getAllUsers() {
+        return await User.findAll();
+    }
 }

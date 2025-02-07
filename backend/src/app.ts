@@ -20,12 +20,7 @@ app.use(userRoutes);
 
 // Setup Swagger
 setupSwagger(app);
-sequelize.sync({force: true}).then(() => {
-  console.log('Database connected');
-}).catch((error) => {
-  console.log('An error during bd connection occurred: ', error);
-  process.exit();
-});
+
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Swagger available at http://localhost:${port}/api-docs`);

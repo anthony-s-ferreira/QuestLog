@@ -27,7 +27,18 @@ model User {
     password  String
     name String
     type UserType
+
+    RPG RPG[]
 }
+
+model RPG {
+    id          Int      @id @default(autoincrement())
+    name        String
+    description String
+    masterid     Int
+    active      Boolean @default(true)
+    master       User @relation(fields: [masterid], references: [id])
+  }
 
 enum UserType {
     admin

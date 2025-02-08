@@ -49,7 +49,6 @@ export const validateRPGMaster = async (masterId: number, res: Response) => {
         throw new Error('Master id is required.');
     }
     const user = await userService.getUserById(masterId);
-    console.log(user)
     if (!user) {
         res.status(404).json( {message: `User with id ${masterId} not found.`} );
         throw new Error(`User with id ${masterId} not found`);

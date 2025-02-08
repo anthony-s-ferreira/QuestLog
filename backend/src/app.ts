@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express';
 import { setupSwagger } from '../config/swagger';
-import sequelize from '../config/database';
-import { error } from 'console';
-import { userRoutes } from './routes/userRoutes';
+import { userRoutes } from './routes/UserRoutes';
+import { rpgRoutes } from './routes/RpgRoutes';
 
 
 const app: express.Application = express();
@@ -17,6 +16,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World');
 });
 app.use(userRoutes);
+app.use(rpgRoutes);
 
 // Setup Swagger
 setupSwagger(app);

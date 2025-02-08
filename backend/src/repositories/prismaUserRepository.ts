@@ -1,6 +1,3 @@
-import { PrismaClient } from "@prisma/client";
-import { UserRepository } from "./userRepository";
-import {User} from "../domain/entities/User"
 import { db } from "../../config/database";
 
 export const createUser = ( input: any ) => {
@@ -9,4 +6,8 @@ export const createUser = ( input: any ) => {
 
 export const getAllUsers = () => {
     return db.user.findMany();
+}
+
+export const getUserById = (id: number) => {
+    return db.user.findUnique({where: {id}});
 }

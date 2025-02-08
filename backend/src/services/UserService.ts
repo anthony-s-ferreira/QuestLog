@@ -11,4 +11,8 @@ export class UserService {
     async getAllUsers() {
         return await repository.getAllUsers();
     }
+
+    async getUserById(id: number) {
+        return await repository.getUserById(id);
+    }
 }

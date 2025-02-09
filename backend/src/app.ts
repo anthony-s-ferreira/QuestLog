@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express';
 import { setupSwagger } from '../config/swagger';
-import sequelize from '../config/database';
-import { error } from 'console';
-import { userRoutes } from './routes/userRoutes';
+import { userRoutes } from './routes/UserRoutes';
+import { rpgRoutes } from './routes/RpgRoutes';
 
 
 const app: express.Application = express();
@@ -17,15 +16,11 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World');
 });
 app.use(userRoutes);
+app.use(rpgRoutes);
 
 // Setup Swagger
 setupSwagger(app);
-sequelize.sync({force: true}).then(() => {
-  console.log('Database connected');
-}).catch((error) => {
-  console.log('An error during bd connection occurred: ', error);
-  process.exit();
-});
+
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Swagger available at http://localhost:${port}/api-docs`);

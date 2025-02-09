@@ -3,4 +3,10 @@ export interface User {
     name: string;
     email: string;
     password: string;
+    type: UserType
+}
+
+export enum UserType {
+    admin = 'admin',
+    user = 'user'
 }

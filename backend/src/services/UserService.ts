@@ -1,19 +1,18 @@
-import { UserRepository } from "../repositories/userRepository";
-import { User, UserType } from "../models/User";
+import * as repository from "../repositories/prismaUserRepository";
+import { User, UserType } from "../domain/entities/User"; // Adjust the import path as necessary
 
 export class UserService {
-    private userRepository: UserRepository;
-
-    constructor() {
-        this.userRepository = new UserRepository();
-    }
 
     async createUser(name: string, email: string, password: string, type: string) {
-        const convertType = type as unknown as UserType;
-        return await this.userRepository.createUser(name, email, password, convertType);
+        const user = {name, email, password, type} as User;
+        return await repository.createUser(user);
     }
 
     async getAllUsers() {
-        return await this.userRepository.getAllUsers();
+        return await repository.getAllUsers();
+    }
+
+    async getUserById(id: number) {
+        return await repository.getUserById(id);
     }
 }

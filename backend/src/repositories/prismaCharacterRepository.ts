@@ -59,10 +59,15 @@ export const getCharacterById = (id: number) => {
     });
 };
 
+
 export const updateCharacter = (id: number, input: any) => {
     return db.character.update({
         where: { id },
-        data: input,
+        data: {
+            name: input.name,
+            owner: input.ownerId ? { connect: { id: input.ownerId } } : undefined,
+            rpg: input.rpgId ? { connect: { id: input.rpgId } } : undefined, 
+        },
         include: {
             owner: {
                 select: {
@@ -79,6 +84,7 @@ export const updateCharacter = (id: number, input: any) => {
         }
     });
 };
+
 
 export const deleteCharacterById = (id: number) => {
     return db.character.delete({ where: { id } });

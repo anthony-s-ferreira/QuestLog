@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { setupSwagger } from '../config/swagger';
 import { userRoutes } from './routes/UserRoutes';
 import { rpgRoutes } from './routes/RpgRoutes';
+import { characterRoutes } from './routes/CharacterRoutes';
 import cors from "cors";
 
 
@@ -26,6 +27,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 app.use(userRoutes);
 app.use(rpgRoutes);
+app.use(characterRoutes);
 
 // Setup Swagger
 setupSwagger(app);

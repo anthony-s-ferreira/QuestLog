@@ -4,5 +4,5 @@ export interface Character {
     id?: number;
     name: string;
     owner: User;
-    rpg?: RPG;
+    rpg: RPG;
 }

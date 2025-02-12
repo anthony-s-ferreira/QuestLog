@@ -19,6 +19,8 @@ model EventType {
   id          Int    @id @default(autoincrement())
   name        String
   description String
+
+  Event Event[]
 }
 
 model User {
@@ -51,6 +53,18 @@ model Character {
 
   rpgId Int
   rpg   RPG @relation(fields: [rpgId], references: [id])
+  events Event[]
+}
+
+model Event {
+  id Int @id @default(autoincrement())
+  description String
+  characterId Int
+  createdAt DateTime @default(now())
+  typeId Int
+  type EventType @relation(fields: [typeId], references: [id])
+
+  character Character @relation(fields: [characterId], references: [id])
 }
 
 enum UserType {

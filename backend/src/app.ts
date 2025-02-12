@@ -4,6 +4,7 @@ import { userRoutes } from './routes/UserRoutes';
 import { rpgRoutes } from './routes/RpgRoutes';
 import { characterRoutes } from './routes/CharacterRoutes';
 import { eventTypeRoutes } from './routes/EventTypeRoutes';
+import { eventRoutes } from './routes/EventRoutes';
 import cors from "cors";
 
 const app: express.Application = express();
@@ -27,7 +28,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use(userRoutes);
 app.use(rpgRoutes);
 app.use(characterRoutes);
-app.use(eventTypeRoutes)
+app.use(eventTypeRoutes);
+app.use(eventRoutes);
 
 // Setup Swagger
 setupSwagger(app);

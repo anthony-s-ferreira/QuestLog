@@ -2,6 +2,9 @@ import express, { Request, Response } from 'express';
 import { setupSwagger } from '../config/swagger';
 import { userRoutes } from './routes/UserRoutes';
 import { rpgRoutes } from './routes/RpgRoutes';
+import { characterRoutes } from './routes/CharacterRoutes';
+import cors from "cors";
+
 
 
 const app: express.Application = express();
@@ -10,6 +13,13 @@ const port = process.env.PORT || 3000;
 //Configurations
 app.use(express.json());
 
+app.use(
+  cors({
+    origin: ["https://editor.swagger.io/", "http://localhost:3000/", "https://app.swaggerhub.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 //API routes
 app.get('/', (req: Request, res: Response) => {
@@ -17,6 +27,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 app.use(userRoutes);
 app.use(rpgRoutes);
+app.use(characterRoutes);
 
 // Setup Swagger
 setupSwagger(app);

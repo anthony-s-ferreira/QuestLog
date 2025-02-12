@@ -1,27 +1,25 @@
-import { PrismaClient } from "@prisma/client";
-import { EventTypeRepository } from "./eventTypeRepository";
-import { EventType } from "../domain/entities/EventType";
+import { db } from "../../config/database";
 
-const prisma = new PrismaClient();
+export const createEventType = (input: any) => {
+    return db.eventType.create({
+        data: input,
+    });
+};
 
-export class PrismaEventTypeRepository implements EventTypeRepository{
-    create(eventType: EventType): Promise<EventType> {
-        throw new Error("Method not implemented.");
-    }
+export const updateEventType = (id: number, input: any) => {
+    return db.eventType.update({
+        data: input, where: {id}
+    });
+};
 
-    getById(id: number): Promise<EventType | null> {
-        throw new Error("Method not implemented.");
-    }
+export const getEventTypes = () => {
+    return db.eventType.findMany();
+}
 
-    getAll(): Promise<EventType[]> {
-        throw new Error("Method not implemented.");
-    }
+export const getEventType = (id: number) => {
+    return db.eventType.findUnique({where: {id}})
+}
 
-    update(eventType: EventType): Promise<EventType | null> {
-        throw new Error("Method not implemented.");
-    }
-
-    deleteById(id: number): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
+export const deleteEventType = (id: number) => {
+    return db.eventType.delete({where: {id}})
 }

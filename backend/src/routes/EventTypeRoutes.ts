@@ -6,7 +6,7 @@ const router = Router();
 /**
  * @swagger
  * tags:
- *   name: Event Type
+ *   name: Event Types
  *   description: API endpoints for managing event types
  */
 
@@ -56,7 +56,7 @@ router.get('/eventType', getEventTypes);
 
 /**
  * @swagger
- * /eventType/:id:
+ * /eventType/{id}:
  *   get:
  *     summary: Get an event type by ID
  *     description: Retrieves details of a specific event type by its ID.
@@ -78,7 +78,7 @@ router.get('/eventType/:id', getEventTypeById);
 
 /**
  * @swagger
- * /eventType/:id:
+ * /eventType/{id}:
  *   put:
  *     summary: Update an event type
  *     description: Updates the details of an existing event type by ID.
@@ -117,7 +117,7 @@ router.put('/eventType/:id', updateEventType);
 
 /**
  * @swagger
- * /eventType/:id:
+ * /eventType/{id}:
  *   delete:
  *     summary: Delete an event type
  *     description: Removes an event type from the system by ID.

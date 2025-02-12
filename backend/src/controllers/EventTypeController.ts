@@ -11,8 +11,8 @@ export const createEventType = async (req: Request, res: Response) => {
         validateRequestBody(req.body, res)
         validateEventTypeName(name, res);
         validateEventTypeDescription(description, res);
-        const rpg = await eventTypeService.createEventType(name, description);
-        res.status(201).json(rpg);
+        const eventType = await eventTypeService.createEventType(name, description);
+        res.status(201).json(eventType);
     } catch (error: Error | any) {
         console.log('Error creating Event Type:', error);
     }
@@ -31,7 +31,6 @@ export const getEventTypeById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        console.log(id)
         await validateEventTypeId(Number(id), res);
         const eventTypes = await eventTypeService.getEventTypeById(Number(id));
         res.status(200).json(eventTypes);
@@ -47,8 +46,8 @@ export const updateEventType = async (req: Request, res: Response) => {
         await validateEventTypeId(Number(id), res);
         validateEventTypeName(name, res);
         validateEventTypeDescription(description, res);
-        const rpg = await eventTypeService.updateEventType(Number(id), name, description);
-        res.status(201).json(rpg);
+        const eventType = await eventTypeService.updateEventType(Number(id), name, description);
+        res.status(201).json(eventType);
     } catch (error: Error | any) {
         console.log('Error updating Event type with id:', id, error);
     }

@@ -3,7 +3,7 @@ import { EventType } from '../domain/entities/EventType';
 import { EventTypeFormDTO } from '../domain/formDTO/EventTypeFormDTO';
 import * as repository from '../repositories/prismaEventTypeRepository'
 import { validateId } from '../validators/CommonValidator';
-import { validateEventTypeDescription, validateEventTypeExists, validateEventTypeId, validateEventTypeName } from '../validators/EventTypeValidator';
+import { validateEventTypeDescription, validateEventTypeExists, validateEventTypeName } from '../validators/EventTypeValidator';
 
 export class EventTypeService {
     async createEventType(eventTypeForm: EventTypeFormDTO) {
@@ -42,6 +42,9 @@ export class EventTypeService {
     }
 
     convertEventType(eventType: EventType) : EventTypeDTO {
-        return { id: eventType.id, name: eventType.name, description: eventType.description };
+        return { 
+            id: eventType.id, 
+            name: eventType.name, 
+            description: eventType.description };
     }
 }

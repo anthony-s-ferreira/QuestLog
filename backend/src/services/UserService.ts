@@ -12,7 +12,7 @@ export class UserService {
         validateUserName(userForm.name);
         validateUserEmail(userForm.email);
         validateUserType(userForm.type);
-        validateUserPassword(userForm.type);
+        validateUserPassword(userForm.password);
 
         const user = { 
             name: userForm.name, 
@@ -89,6 +89,14 @@ export class UserService {
         validateId(id, 'User');
         validateUserExists(id);
         return await repository.getUserById(id);
+    }
+
+    async validateUserExists(id: number) {
+        validateId(id, 'User');
+        const user = await repository.getUserById(id);
+        if (!user) {
+            throw new Error('User not found.');
+        }
     }
 
     convertUser(user: User) : UserDTO {

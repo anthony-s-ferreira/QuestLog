@@ -1,10 +1,8 @@
 import { Response } from 'express';
-import { RpgService } from '../services/RpgService';
 import { validateId } from './CommonValidator';
 import { validateUserId } from './UserValidator';
 import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
-
-const rpgService = new RpgService();
+import * as repository from '../repositories/prismaRpgRepository'
 
 export const validateRequestBody = async (body: RPGFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
@@ -60,7 +58,7 @@ export const validateRPGStatus = (status: boolean) => {
 }
 
 export const validateRPGExists = async (id: number) => {
-    const rpg = await rpgService.getRPGById(id);
+    const rpg = await repository.getRpgById(id);
     if (!rpg) {
         throw new Error('RPG not found.');
     }

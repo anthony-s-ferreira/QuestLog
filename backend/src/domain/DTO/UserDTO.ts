@@ -1,9 +1,8 @@
 import { UserType } from "../enums/UserType";
 
-export interface User {
+export interface UserDTO {
     id: number;
     name: string;
     email: string;
-    password: string;
     type: UserType
 }

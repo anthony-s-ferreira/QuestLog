@@ -1,17 +1,16 @@
 import { Request, Response } from 'express';
 import { validateEventTypeDescription, validateEventTypeId, validateEventTypeName, validateRequestBody } from '../validators/EventTypeValidator';
 import { EventTypeService } from '../services/EventTypeService';
+import { EventTypeFormDTO } from '../domain/formDTO/EventTypeFormDTO';
 
 const eventTypeService = new EventTypeService()
 
 export const createEventType = async (req: Request, res: Response) => {
     const { name, description } = req.body;
-
+    const eventTypeForm: EventTypeFormDTO = {name, description}
     try {
-        validateRequestBody(req.body, res)
-        validateEventTypeName(name, res);
-        validateEventTypeDescription(description, res);
-        const eventType = await eventTypeService.createEventType(name, description);
+        validateRequestBody(eventTypeForm, res);
+        const eventType = await eventTypeService.createEventType(eventTypeForm);
         res.status(201).json(eventType);
     } catch (error: Error | any) {
         console.log('Error creating Event Type:', error);
@@ -42,11 +41,11 @@ export const getEventTypeById = async (req: Request, res: Response) => {
 export const updateEventType = async (req: Request, res: Response) => {
     const { name, description } = req.body;
     const { id } = req.params;
+    const eventTypeForm: EventTypeFormDTO = {name, description}
     try {
+        validateRequestBody(eventTypeForm, res);
         await validateEventTypeId(Number(id), res);
-        validateEventTypeName(name, res);
-        validateEventTypeDescription(description, res);
-        const eventType = await eventTypeService.updateEventType(Number(id), name, description);
+        const eventType = await eventTypeService.updateEventType(Number(id), eventTypeForm);
         res.status(201).json(eventType);
     } catch (error: Error | any) {
         console.log('Error updating Event type with id:', id, error);

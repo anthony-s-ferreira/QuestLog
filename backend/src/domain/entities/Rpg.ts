@@ -1,9 +1,9 @@
 import { User } from "@prisma/client";
 
 export interface RPG {
-    id?: number,
+    id: number,
     name: string,
     description: string,
     master: User,
-    active?: boolean
+    active: boolean
 }

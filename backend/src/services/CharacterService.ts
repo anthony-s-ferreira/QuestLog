@@ -1,51 +1,68 @@
 import { Character } from "../domain/entities/Character";
 import * as repository from "../repositories/prismaCharacterRepository";
-import { UserService } from "./UserService";
 import { RpgService } from "./RpgService";
+import { CharacterFormDTO } from "../domain/formDTO/CharacterFormDTO";
+import { validateCharacterExists, validateCharacterName, validateRequestBody } from "../validators/CharacterValidator";
+import { validateId } from "../validators/CommonValidator";
+import { validateUserExists } from "../validators/UserValidator";
+import { validateRPGExists } from "../validators/RpgValidator";
+import { CharacterDTO } from "../domain/DTO/CharacterDTO";
+import { UserService } from "./UserService";
+import { RPG } from "../domain/entities/Rpg";
+import { User } from "../domain/entities/User";
 
-const userService = new UserService();
 const rpgService = new RpgService();
-
+const userService = new UserService();
 
 export class CharacterService {
     
-    async createCharacter(name: string, ownerId: number, rpgId: number) {
-        const owner = await userService.getUserById(ownerId);
-        const rpg = await rpgService.getRPGById(rpgId);
+    async createCharacter(charForm: CharacterFormDTO) {
+        validateCharacterName(charForm.name);
+        validateId(charForm.ownerId, 'Owner');
+        validateId(charForm.rpgId, 'RPG');
+        validateUserExists(charForm.ownerId);
+        validateRPGExists(charForm.rpgId);
 
-        if (!owner) throw new Error("User not found");
-        if (!rpg) throw new Error("RPG not found");
-
-        const character = { 
-            name, 
-            owner: { connect: { id: owner.id } }, 
-            rpg: { connect: { id: rpg.id } } 
-        };
-        return repository.createCharacter(character);
+        const char = await repository.createCharacter(charForm);
+        return this.convertCharacter(char);
     }
 
     async getAllCharacters() {
-        return repository.getAllCharacters();
+        const characters = await repository.getAllCharacters();
+        return characters.map(char => this.convertCharacter(char));
     }
 
     async getCharacterById(id: number) {
-        return repository.getCharacterById(id);
+        validateId(id, 'Character');
+        await validateCharacterExists(id);
+        const character = await repository.getCharacterById(id);
+        return this.convertCharacter(character);
     }
 
-    async updateCharacter(id: number, name: string, rpgId: number) {
-        const character = await this.getCharacterById(id);
-        const rpg = await rpgService.getRPGById(rpgId);
-
-        if (!character) throw new Error("Character not found");
-        if (!rpg) throw new Error("RPG not found");
-
+    async updateCharacter(id: number, name: string) {
+        validateId(id, 'Character');
+        await validateCharacterExists(id);
+        validateCharacterName(name);
+        validateCharacterName(name);
+        const character = await repository.getCharacterById(id);
         character.name = name;
-        character.rpg = { connect: { id: rpg.id } };
 
-        return repository.updateCharacter(id, character);
+        const updatedChar = await repository.updateCharacter(id, character);
+        return this.convertCharacter(updatedChar);
     }
 
     async deleteCharacter(id: number) {
-        return repository.deleteCharacterById(id);
+        return await repository.deleteCharacterById(id);
+    }
+
+    convertCharacter(char: Character): CharacterDTO {
+        const user = userService.convertUser(char.owner as User);
+        const rpg = rpgService.convertRPG(char.rpg as RPG);
+        return {
+            id: char.id,
+            name: char.name,
+            owner: user,
+            rpg: rpg
+        };
     }
 }

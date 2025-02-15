@@ -4,16 +4,10 @@ export const createCharacter = (input: any) => {
     return db.character.create({
         data: input,
         include: {
-            owner: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
+            owner: true,
             rpg: {
-                select: {
-                    id: true,
-                    name: true,
+                include: {
+                    master: true
                 }
             }
         }
@@ -23,16 +17,10 @@ export const createCharacter = (input: any) => {
 export const getAllCharacters = () => {
     return db.character.findMany({
         include: {
-            owner: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
+            owner: true,
             rpg: {
-                select: {
-                    id: true,
-                    name: true,
+                include: {
+                    master: true
                 }
             }
         }
@@ -43,16 +31,10 @@ export const getCharacterById = (id: number) => {
     return db.character.findUnique({
         where: { id },
         include: {
-            owner: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
+            owner: true,
             rpg: {
-                select: {
-                    id: true,
-                    name: true,
+                include: {
+                    master: true
                 }
             }
         }
@@ -63,22 +45,12 @@ export const getCharacterById = (id: number) => {
 export const updateCharacter = (id: number, input: any) => {
     return db.character.update({
         where: { id },
-        data: {
-            name: input.name,
-            owner: input.ownerId ? { connect: { id: input.ownerId } } : undefined,
-            rpg: input.rpgId ? { connect: { id: input.rpgId } } : undefined, 
-        },
+        data: input,
         include: {
-            owner: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
+            owner: true,
             rpg: {
-                select: {
-                    id: true,
-                    name: true,
+                include: {
+                    master: true
                 }
             }
         }

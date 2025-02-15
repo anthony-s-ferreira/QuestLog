@@ -3,8 +3,7 @@ import { User } from "../domain/entities/User";
 import { validateId } from './CommonValidator';
 import { UserService } from '../services/UserService';
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
-
-const userService = new UserService();
+import * as repository from '../repositories/prismaUserRepository';
 
 export const validateRequestBody = (body: UserFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
@@ -93,16 +92,27 @@ export const validateUserType = (type: string) => {
 } 
 
 export const validateUserExists = async (id: number) => {
-    const User = await userService.getUserById(id);
+    const User = await repository.getUserById(id);
     if (!User) {
         throw new Error('User not found.');
+    }
+}
+
+export const validateNewPassword = async (id: number, password: string, newPassword: string) => {
+    const user = await repository.getUserById(id);
+    if (user.password !== password) {
+        throw new Error('Current password is incorrect');
+    }
+    if (user.password === newPassword) {
+        throw new Error('New password must be different from the current password');
     }
 }
 
 export const validateUserPasswordUpdate = async (id: number, password: string, newPassword: string, res: Response) => {
     try {
         validateUserPassword(password);
-        userService.validateNewPassword(id, password, newPassword);
+        validateNewPassword(id, password, newPassword);
+        
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

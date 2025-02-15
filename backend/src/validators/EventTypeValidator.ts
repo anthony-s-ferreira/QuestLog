@@ -1,10 +1,8 @@
 import { Response } from 'express';
 import { EventType } from '../domain/entities/EventType';
-import { EventTypeService } from '../services/EventTypeService';
 import { validateId } from './CommonValidator';
 import { EventTypeFormDTO } from '../domain/formDTO/EventTypeFormDTO';
-
-const eventTypeService = new EventTypeService()
+import * as repository from '../repositories/prismaEventTypeRepository';
 
 export const validateRequestBody = (body: EventTypeFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
@@ -44,7 +42,7 @@ export const validateEventTypeDescription = (description: string) => {
 }
 
 export const validateEventTypeExists = async (id: number) => {
-    const eventType = await eventTypeService.getEventTypeById(id);
+    const eventType = await repository.getEventType(id);
     if (!eventType) {
         throw new Error(`Event Type with id: ${id} does not exist.`);
     }

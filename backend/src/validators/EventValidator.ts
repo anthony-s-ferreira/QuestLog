@@ -1,41 +1,59 @@
 import { Response } from 'express';
 import { Event } from '../domain/entities/Event';
-import { EventService } from '../services/EventService';
-import { CharacterService } from '../services/CharacterService';
-import { EventTypeService } from '../services/EventTypeService';
+import { validateId } from './CommonValidator';
+import { validateCharacterId } from './CharacterValidator';
+import { validateEventTypeId } from './EventTypeValidator';
+import * as repository from '../repositories/prismaEventRepository';
+import { EventFormDTO } from '../domain/formDTO/EventFormDTO';
 
-const eventService = new EventService();
-
-export const validateRequestBody = (body: Event, res: Response) => {
+export const validateRequestBody = async (body: EventFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
         res.status(400).json({ message: 'Event is required.' });
         throw new Error('Event is required.');
       }
+    try {
+        validateEventDescription(body.description);
+        validateId(body.characterId, 'Character');
+        validateId(body.typeId, 'Event Type');
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+    await validateCharacterId(body.characterId, res);
+    await validateEventTypeId(body.typeId, res);
+
 }
 
-export const validateEventDescription = (description: string, res: Response) => {
+export const validateEventDescription = (description: string) => {
     if (!description || description.trim() === "") {
-        res.status(400).json({message: 'Event description is required.'});
         throw new Error('Event description is required.');
     }
     if (description.length < 20) {
-        res.status(400).json({message: 'Event description must have at least 3 characters.'});
         throw new Error('Event description must have at least 3 characters.');
     }
     if (description.length > 400) {
-        res.status(400).json({message: 'Event description must have at most 400 characters.'});
         throw new Error('Event name must have at most 400 characters.');
     }
 }
 
-export const validateEventId = async (id: number, res: Response) => {
-    if (!id) {
-        res.status(400).json( { message: 'Event id is required.' } );
-        throw new Error('Event id is required.');
+export const validateEventExists = async (id: number) => {
+    const event = await repository.getEvent(id);
+    if (!event) {
+        throw new Error('Event not found.');
     }
-    const Event = await eventService.getEvent(id);
-    if (!Event) {
-        res.status(404).json( {message: `Event with id: ${id} does not exist.`} );
-        throw new Error(`Event with id: ${id} does not exist.`);
+}
+
+export const validateEventId = async (id: number, res: Response) => {
+    try {
+        validateId(id, 'Event');
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+    try {
+        validateEventExists(id);
+    }
+    catch (error) {
+        res.status(404).json({ message: error.message });
     }
 }

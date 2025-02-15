@@ -1,75 +1,91 @@
 import { Response } from 'express';
-import { RPG } from "../domain/entities/Rpg";
-import { UserService } from '../services/UserService';
 import { RpgService } from '../services/RpgService';
+import { validateId } from './CommonValidator';
+import { validateUserId } from './UserValidator';
+import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
 
-const userService = new UserService();
 const rpgService = new RpgService();
 
-export const validateRequestBody = (body: RPG, res: Response) => {
+export const validateRequestBody = async (body: RPGFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
         res.status(400).json({ message: 'Rpg is required.' });
         throw new Error('Rpg is required.');
       }
+    try {
+        validateRPGName(body.name);
+        validateRPGDescription(body.description);
+        if (body.active !== undefined) {
+            validateRPGStatus(body.active);
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+    if (body.master) {
+        await validateUserId(body.master, res);
+    }
 }
 
-export const validateRPGName = (name: string, res: Response) => {
+export const validateRPGName = (name: string) => {
     if (!name || name.trim() === "") {
-        res.status(400).json({message: 'RPG name is required.'});
         throw new Error('RPG name is required.');
     }
     if (name.length < 3) {
-        res.status(400).json({message: 'RPG name must have at least 3 characters.'});
         throw new Error('RPG name must have at least 3 characters.');
     }
     if (name.length > 20) {
-        res.status(400).json({message: 'RPG name must have at most 20 characters.'});
         throw new Error('RPG name must have at most 20 characters.');
     }
 }
 
-export const validateRPGDescription = (description: string, res: Response) => {
+export const validateRPGDescription = (description: string) => {
     if (!description || description.trim() === "") {
-        res.status(400).json({message: 'RPG description is required.'});
         throw new Error('RPG description is required.');
     }
     if (description.length < 20) {
-        res.status(400).json({message: 'RPG description must have at least 3 characters.'});
         throw new Error('RPG description must have at least 3 characters.');
     }
     if (description.length > 200) {
-        res.status(400).json({message: 'RPG description must have at most 200 characters.'});
         throw new Error('RPG name must have at most 200 characters.');
     }
 }
 
-export const validateRPGMaster = async (masterId: number, res: Response) => {
-    if (!masterId) {
-        res.status(400).json( {message: 'Master id is required.'})
-        throw new Error('Master id is required.');
+export const validateRPGStatus = (status: boolean) => {
+    if (status === undefined) {
+        throw new Error('RPG status is required.');
     }
-    const user = await userService.getUserById(masterId);
-    if (!user) {
-        res.status(404).json( {message: `User with id ${masterId} not found.`} );
-        throw new Error(`User with id ${masterId} not found`);
+
+    if (typeof status !== 'boolean') {
+        throw new Error('RPG status must be a boolean.');
     }
 }
 
-export const validateRPGStatus = (status: boolean, res: Response) => {
-    if (status === undefined) {
-        res.status(400).json( { message: 'RPG status is required.' } );
-        throw new Error('RPG status is required.');
+export const validateRPGExists = async (id: number) => {
+    const rpg = await rpgService.getRPGById(id);
+    if (!rpg) {
+        throw new Error('RPG not found.');
     }
 }
 
 export const validateRPGId = async (id: number, res: Response) => {
-    if (!id) {
-        res.status(400).json( { message: 'RPG id is required.' } );
-        throw new Error('RPG id is required.');
+
+    try {
+        validateId(id, 'User');
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
-    const rpg = await rpgService.getRPGById(id);
-    if (!rpg) {
-        res.status(404).json( {message: `RPG with id: ${id} does not exist.`} );
-        throw new Error(`RPG with id: ${id} does not exist.`);
+    try {
+        await validateRPGExists(id);
     }
+    catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+}
+
+export const validateRPGStatusPatch = (status: boolean, res: Response) => {
+    try {
+        validateRPGStatus(status);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+
 }

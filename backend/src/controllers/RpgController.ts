@@ -1,17 +1,16 @@
 import { Request, Response } from 'express';
 import { RpgService } from "../services/RpgService";
-import { validateRPGDescription, validateRPGId, validateRPGMaster, validateRPGName, validateRPGStatus } from '../validators/RpgValidator';
+import { validateRequestBody, validateRPGDescription, validateRPGId, validateRPGName, validateRPGStatus, validateRPGStatusPatch } from '../validators/RpgValidator';
+import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
 
 const rpgService = new RpgService();
 
 export const createRPG = async (req: Request, res: Response) => {
     const { name, description, userId } = req.body;
-
+    const rpgFormDTO: RPGFormDTO = {name, description, master: userId, active: true}; 
     try {
-        validateRPGName(name, res);
-        validateRPGDescription(description, res);
-        await validateRPGMaster(userId, res);
-        const rpg = await rpgService.createRPG(name, description, userId);
+        await validateRequestBody(rpgFormDTO, res);
+        const rpg = await rpgService.createRPG(rpgFormDTO);
         res.status(201).json(rpg);
     } catch (error: Error | any) {
         console.log('Error creating RPG:', error);
@@ -42,12 +41,12 @@ export const getRPGById = async (req: Request, res: Response) => {
 export const updateRPG = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, description } = req.body;
-
+    const rpgFormDTO: RPGFormDTO = {name, description}; 
     try {
+        
         await validateRPGId(Number(id), res);
-        validateRPGName(name, res);
-        validateRPGDescription(description, res);
-        const rpg = await rpgService.updateRPG(Number(id), name, description);
+        validateRequestBody(rpgFormDTO, res);
+        const rpg = await rpgService.updateRPG(Number(id), rpgFormDTO);
         res.status(200).json(rpg);
     } catch (error: Error | any) {
         console.log('Error updating RPG:', error);
@@ -60,7 +59,7 @@ export const updateRPGStatus = async (req: Request, res: Response) => {
 
     try {
         await validateRPGId(Number(id), res);
-        validateRPGStatus(status, res);
+        validateRPGStatusPatch(status, res);
         const rpg = await rpgService.updateRPGStatus(Number(id), status);
         res.status(200).json(rpg);
     } catch (error: Error | any) {

@@ -4,18 +4,8 @@ export const createEvent = (input: any) => {
     return db.event.create({
         data: input,
         include: {
-            character: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            type: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
+            character: true,
+            type: true
         }
     });
 };
@@ -25,18 +15,8 @@ export const updateEvent = (id: number, input: any) => {
         data: input, 
         where: {id},
         include: {
-            character: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            type: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
+            character: true,
+            type: true
         },
     });
 };
@@ -44,18 +24,8 @@ export const updateEvent = (id: number, input: any) => {
 export const getEvents = () => {
     return db.event.findMany({
         include: {
-            character: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            type: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
+            character: true,
+            type: true
         },
     });
 }
@@ -63,18 +33,8 @@ export const getEvents = () => {
 export const getEvent = (id: number) => {
     return db.event.findUnique({where: {id},
         include: {
-            character: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            type: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
+            character: true,
+            type: true
         },
     })
 }

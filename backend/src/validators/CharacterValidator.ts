@@ -1,67 +1,70 @@
 import { Response } from 'express';
 import { Character } from "../domain/entities/Character";
-import { UserService } from '../services/UserService';
-import { CharacterService } from '../services/CharacterService';
-import { RpgService } from '../services/RpgService';
+import { validateId } from './CommonValidator';
+import { validateRPGId } from './RpgValidator';
+import { validateUserId } from './UserValidator';
+import * as repository from '../repositories/prismaCharacterRepository';
+import { CharacterFormDTO } from '../domain/formDTO/CharacterFormDTO';
 
-const userService = new UserService();
-const characterService = new CharacterService();
-const rpgService = new RpgService();
-
-export const validateRequestBody = (body: Character, res: Response) => {
+export const validateRequestBody = async (body: CharacterFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
         res.status(400).json({ message: 'Character data is required.' });
         throw new Error('Character data is required.');
     }
+    try {
+        validateCharacterName(body.name);
+        validateId(body.ownerId, 'Owner');
+        validateId(body.rpgId, 'RPG');
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+    await validateUserId(body.ownerId, res);
+    await validateRPGId(body.rpgId, res);
 };
 
-export const validateCharacterName = (name: string, res: Response) => {
+export const validateCharacterName = (name: string) => {
     if (!name || name.trim() === "") {
-        res.status(400).json({ message: 'Character name is required.' });
         throw new Error('Character name is required.');
     }
     if (name.length < 3) {
-        res.status(400).json({ message: 'Character name must have at least 3 characters.' });
         throw new Error('Character name must have at least 3 characters.');
     }
     if (name.length > 30) {
-        res.status(400).json({ message: 'Character name must have at most 30 characters.' });
         throw new Error('Character name must have at most 30 characters.');
     }
 };
 
-export const validateCharacterOwner = async (ownerId: number, res: Response) => {
-    if (!ownerId) {
-        res.status(400).json({ message: 'Owner ID is required.' });
-        throw new Error('Owner ID is required.');
-    }
-    const user = await userService.getUserById(ownerId);
-    if (!user) {
-        res.status(404).json({ message: `User with id ${ownerId} not found.` });
-        throw new Error(`User with id ${ownerId} not found.`);
-    }
-};
+export const validatePatchCharacterName = (name: string, res: Response) => {
+    try {
+        validateCharacterName(name);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }    
+}
 
-export const validateCharacterRpg = async (rpgId: number, res: Response) => {
-    if (!rpgId) {
-        res.status(400).json({ message: 'RPG ID is required.' });
-        throw new Error('RPG ID is required.');
+export const validateCharacterIdExists = async (id: number) => {
+    const character = await repository.getCharacterById(id);
+    if (!character) {
+        throw new Error('Character not found.');
     }
-    const rpg = await rpgService.getRPGById(rpgId);
-    if (!rpg) {
-        res.status(404).json({ message: `RPG with id ${rpgId} not found.` });
-        throw new Error(`RPG with id ${rpgId} not found.`);
+}
+
+export const validateCharacterExists = async (id: number) => {
+    const character = await repository.getCharacterById(id);
+    if (!character) {
+        throw new Error('Character not found.');
     }
-};
+}
 
 export const validateCharacterId = async (id: number, res: Response) => {
-    if (!id) {
-        res.status(400).json({ message: 'Character ID is required.' });
-        throw new Error('Character ID is required.');
+    try {
+        validateId(id, 'Character');
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
-    const character = await characterService.getCharacterById(id);
-    if (!character) {
-        res.status(404).json({ message: `Character with id ${id} does not exist.` });
-        throw new Error(`Character with id ${id} does not exist.`);
+    try {
+        validateCharacterExists(id);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
     }
-};
+}

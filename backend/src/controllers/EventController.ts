@@ -3,18 +3,16 @@ import { validateEventTypeId  } from '../validators/EventTypeValidator';
 import { validateCharacterId } from '../validators/CharacterValidator';
 import { EventService } from '../services/EventService';
 import { validateEventDescription, validateEventId, validateRequestBody } from '../validators/EventValidator';
+import { EventFormDTO } from '../domain/formDTO/EventFormDTO';
 
 const eventService = new EventService()
 
 export const createEvent = async (req: Request, res: Response) => {
     const { description, characterId, typeId } = req.body;
-
+    const eventForm: EventFormDTO = {description, characterId: characterId, typeId: typeId};
     try {
-        validateRequestBody(req.body, res);
-        validateEventDescription(description, res);
-        await validateCharacterId(characterId, res)
-        await validateEventTypeId(typeId, res)
-        const rpg = await eventService.createEvent(description, typeId, characterId);
+        await validateRequestBody(eventForm, res);
+        const rpg = await eventService.createEvent(eventForm);
         res.status(201).json(rpg);
     } catch (error: Error | any) {
         console.log('Error creating Event:', error);
@@ -44,14 +42,13 @@ export const getEventById = async (req: Request, res: Response) => {
 
 export const updateEvent = async (req: Request, res: Response) => {
     const { description, characterId, eventTypeId } = req.body;
+    const eventForm: EventFormDTO = {description, character: characterId, type: eventTypeId};
     const { id } = req.params;
     try {
         await validateEventId(Number(id), res);
-        await validateCharacterId(Number(id), res);
-        await validateEventTypeId(eventTypeId, res)
-        validateEventDescription(description, res);
+        await validateRequestBody(eventForm, res);
         
-        const event = await eventService.updateEvent(Number(id), description, eventTypeId, characterId);
+        const event = await eventService.updateEvent(Number(id), eventForm);
         res.status(201).json(event);
     } catch (error: Error | any) {
         console.log('Error updating Event with id:', id, error);

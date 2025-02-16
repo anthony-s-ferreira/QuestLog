@@ -1,10 +1,16 @@
 import { Request, Response } from 'express';
 import { RpgService } from "../services/RpgService";
-import { validateRequestBody, validateRPGDescription, validateRPGId, validateRPGName, validateRPGStatus, validateRPGStatusPatch } from '../validators/RpgValidator';
+import { validateRequestBody, validateRPGId, validateRPGStatusPatch } from '../validators/RpgValidator';
 import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
 
 const rpgService = new RpgService();
 
+/**
+ * Creates a new RPG.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createRPG = async (req: Request, res: Response) => {
     const { name, description, userId } = req.body;
     const rpgFormDTO: RPGFormDTO = {name, description, master: userId, active: true}; 
@@ -17,6 +23,12 @@ export const createRPG = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves all RPGs.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getAllRPGs = async (req: Request, res: Response) => {
     try {
         const rpgs = await rpgService.getAllRPGs();
@@ -26,6 +38,12 @@ export const getAllRPGs = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves an RPG by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getRPGById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -38,12 +56,17 @@ export const getRPGById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates an RPG by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateRPG = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, description } = req.body;
     const rpgFormDTO: RPGFormDTO = {name, description}; 
     try {
-        
         await validateRPGId(Number(id), res);
         validateRequestBody(rpgFormDTO, res);
         const rpg = await rpgService.updateRPG(Number(id), rpgFormDTO);
@@ -53,6 +76,12 @@ export const updateRPG = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates the status of an RPG by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateRPGStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -67,6 +96,12 @@ export const updateRPGStatus = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Deletes an RPG by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteRPG = async (req: Request, res: Response) => {
     const { id } = req.params;
 

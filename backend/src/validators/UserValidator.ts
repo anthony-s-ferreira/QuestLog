@@ -1,15 +1,20 @@
 import { Response } from 'express';
-import { User } from "../domain/entities/User";
 import { validateId } from './CommonValidator';
-import { UserService } from '../services/UserService';
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 import * as repository from '../repositories/prismaUserRepository';
 
+/**
+ * Validates the request body for creating or updating a user.
+ * 
+ * @param {UserFormDTO} body - The user data to be validated.
+ * @param {Response} res - The response object used to send error responses.
+ * @throws {Error} - Throws an error if validation fails.
+ */
 export const validateRequestBody = (body: UserFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
         res.status(400).json({ message: 'User is required.' });
         throw new Error('User is required.');
-      }
+    }
     try {
         validateUserName(body.name);
         validateUserEmail(body.email);
@@ -20,6 +25,12 @@ export const validateRequestBody = (body: UserFormDTO, res: Response) => {
     }
 }
 
+/**
+ * Validates the user name.
+ * 
+ * @param {string} name - The name of the user to be validated.
+ * @throws {Error} - Throws an error if the name is invalid (too short, too long, or empty).
+ */
 export const validateUserName = (name: string) => {
     if (!name || name.trim() === "") {
         throw new Error('User name is required.');
@@ -32,6 +43,12 @@ export const validateUserName = (name: string) => {
     }
 }
 
+/**
+ * Validates the user email.
+ * 
+ * @param {string} email - The email of the user to be validated.
+ * @throws {Error} - Throws an error if the email is invalid (empty, too short, too long, or invalid format).
+ */
 export const validateUserEmail = (email: string) => {
     if (!email || email.trim() === "") {
         throw new Error('User email is required.');
@@ -46,9 +63,14 @@ export const validateUserEmail = (email: string) => {
     if (!emailRegex.test(email)) {
         throw new Error('User email must be a valid email address.');
     }
-
 }
 
+/**
+ * Validates the user password.
+ * 
+ * @param {string} password - The password of the user to be validated.
+ * @throws {Error} - Throws an error if the password is invalid (empty, too short, or doesn't meet security requirements).
+ */
 export const validateUserPassword = (password: string) => {
     if (!password || password.trim() === "") {
         throw new Error('User password is required.');
@@ -81,6 +103,12 @@ export const validateUserPassword = (password: string) => {
     }
 }
 
+/**
+ * Validates the user type (either 'admin' or 'user').
+ * 
+ * @param {string} type - The type of the user (admin or user).
+ * @throws {Error} - Throws an error if the type is invalid.
+ */
 export const validateUserType = (type: string) => {
     if (!type || type.trim() === "") {
         throw new Error('User type is required.');
@@ -89,8 +117,14 @@ export const validateUserType = (type: string) => {
     if (type != 'admin' && type != 'user') {
         throw new Error('User type must be either admin or user.');
     }
-} 
+}
 
+/**
+ * Validates if a user exists by their ID.
+ * 
+ * @param {number} id - The ID of the user to check.
+ * @throws {Error} - Throws an error if the user does not exist.
+ */
 export const validateUserExists = async (id: number) => {
     const User = await repository.getUserById(id);
     if (!User) {
@@ -98,6 +132,14 @@ export const validateUserExists = async (id: number) => {
     }
 }
 
+/**
+ * Validates if the current password matches the existing password and ensures the new password is different.
+ * 
+ * @param {number} id - The ID of the user whose password is being updated.
+ * @param {string} password - The current password.
+ * @param {string} newPassword - The new password to be validated.
+ * @throws {Error} - Throws an error if the current password is incorrect or the new password is the same as the current one.
+ */
 export const validateNewPassword = async (id: number, password: string, newPassword: string) => {
     const user = await repository.getUserById(id);
     if (user.password !== password) {
@@ -108,6 +150,14 @@ export const validateNewPassword = async (id: number, password: string, newPassw
     }
 }
 
+/**
+ * Validates user password update (checks current password and new password validity).
+ * 
+ * @param {number} id - The ID of the user whose password is being updated.
+ * @param {string} password - The current password.
+ * @param {string} newPassword - The new password to be set.
+ * @param {Response} res - The response object used to send error responses.
+ */
 export const validateUserPasswordUpdate = async (id: number, password: string, newPassword: string, res: Response) => {
     try {
         validateUserPassword(password);
@@ -118,6 +168,12 @@ export const validateUserPasswordUpdate = async (id: number, password: string, n
     }
 }
 
+/**
+ * Validates the user ID and checks if the user exists.
+ * 
+ * @param {number} id - The ID of the user to validate.
+ * @param {Response} res - The response object used to send error responses.
+ */
 export const validateUserId = async (id: number, res: Response) => {
     try {
         validateId(id, 'User');

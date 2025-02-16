@@ -1,15 +1,19 @@
 import { Request, Response } from 'express';
-import { validateEventTypeId  } from '../validators/EventTypeValidator';
-import { validateCharacterId } from '../validators/CharacterValidator';
 import { EventService } from '../services/EventService';
-import { validateEventDescription, validateEventId, validateRequestBody } from '../validators/EventValidator';
+import { validateEventId, validateRequestBody } from '../validators/EventValidator';
 import { EventFormDTO } from '../domain/formDTO/EventFormDTO';
 
-const eventService = new EventService()
+const eventService = new EventService();
 
+/**
+ * Creates a new event.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createEvent = async (req: Request, res: Response) => {
     const { description, characterId, typeId } = req.body;
-    const eventForm: EventFormDTO = {description, characterId: characterId, typeId: typeId};
+    const eventForm: EventFormDTO = { description, characterId, typeId };
     try {
         await validateRequestBody(eventForm, res);
         const rpg = await eventService.createEvent(eventForm);
@@ -19,6 +23,12 @@ export const createEvent = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves all events.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEvents = async (req: Request, res: Response) => {
     try {
         const events = await eventService.getEvents();
@@ -28,6 +38,12 @@ export const getEvents = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEventById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -40,9 +56,15 @@ export const getEventById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateEvent = async (req: Request, res: Response) => {
     const { description, characterId, eventTypeId } = req.body;
-    const eventForm: EventFormDTO = {description, character: characterId, type: eventTypeId};
+    const eventForm: EventFormDTO = { description, character: characterId, type: eventTypeId };
     const { id } = req.params;
     try {
         await validateEventId(Number(id), res);
@@ -55,6 +77,12 @@ export const updateEvent = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Deletes an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteEventById = async (req: Request, res: Response) => {
     const { id } = req.params;
 

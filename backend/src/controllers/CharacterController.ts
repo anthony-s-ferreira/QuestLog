@@ -1,10 +1,16 @@
 import { Request, Response } from 'express';
 import { CharacterService } from "../services/CharacterService";
-import { validateCharacterId, validateCharacterName, validateCharacterOwner, validateCharacterRpg, validatePatchCharacterName, validateRequestBody } from '../validators/CharacterValidator';
+import { validateCharacterId, validatePatchCharacterName, validateRequestBody } from '../validators/CharacterValidator';
 import { CharacterFormDTO } from '../domain/formDTO/CharacterFormDTO';
 
 const characterService = new CharacterService();
 
+/**
+ * Creates a new character.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createCharacter = async (req: Request, res: Response) => {
     const { name, ownerId, rpgId } = req.body;
     const charForm: CharacterFormDTO = { name, ownerId, rpgId };
@@ -17,6 +23,12 @@ export const createCharacter = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves all characters.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getAllCharacters = async (req: Request, res: Response) => {
     try {
         const characters = await characterService.getAllCharacters();
@@ -26,6 +38,12 @@ export const getAllCharacters = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves a character by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getCharacterById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -38,6 +56,12 @@ export const getCharacterById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates a character by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateCharacter = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name } = req.body;
@@ -52,6 +76,12 @@ export const updateCharacter = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Deletes a character by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteCharacter = async (req: Request, res: Response) => {
     const { id } = req.params;
 

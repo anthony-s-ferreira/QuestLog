@@ -11,6 +11,12 @@ const userService = new UserService();
 
 export class RpgService {
 
+    /**
+     * Creates a new RPG.
+     * 
+     * @param rpgFormDTO - The RPG data to be created.
+     * @returns The created RPG.
+     */
     async createRPG(rpgFormDTO: RPGFormDTO) {
         validateRPGName(rpgFormDTO.name);
         validateRPGDescription(rpgFormDTO.description);
@@ -20,11 +26,22 @@ export class RpgService {
         return this.convertRPG(rpg);
     }
 
+    /**
+     * Retrieves all RPGs.
+     * 
+     * @returns A list of all RPGs.
+     */
     async getAllRPGs() {
-            const rpgs = await repository.getAllRpgs();
-            return rpgs.map(rpg => this.convertRPG(rpg));
-        }
+        const rpgs = await repository.getAllRpgs();
+        return rpgs.map(rpg => this.convertRPG(rpg));
+    }
 
+    /**
+     * Retrieves an RPG by ID.
+     * 
+     * @param id - The ID of the RPG to be retrieved.
+     * @returns The RPG with the specified ID.
+     */
     async getRPGById(id: number) {
         validateId(id, 'RPG');
         await validateRPGExists(id);
@@ -32,6 +49,13 @@ export class RpgService {
         return this.convertRPG(rpg);
     }
 
+    /**
+     * Updates an RPG by ID.
+     * 
+     * @param id - The ID of the RPG to be updated.
+     * @param rpgFormDTO - The RPG data to be updated.
+     * @returns The updated RPG.
+     */
     async updateRPG(id: number, rpgFormDTO: RPGFormDTO) {
         validateId(id, 'RPG');
         await validateRPGExists(id);
@@ -46,6 +70,13 @@ export class RpgService {
         return this.convertRPG(updatedRPG);
     }
 
+    /**
+     * Updates the status of an RPG by ID.
+     * 
+     * @param id - The ID of the RPG whose status is to be updated.
+     * @param active - The new status of the RPG.
+     * @returns The updated RPG.
+     */
     async updateRPGStatus(id: number, active: boolean) {
         validateId(id, 'RPG');
         await validateRPGExists(id);
@@ -58,12 +89,24 @@ export class RpgService {
         }
     }
 
+    /**
+     * Deletes an RPG by ID.
+     * 
+     * @param id - The ID of the RPG to be deleted.
+     * @returns The result of the deletion.
+     */
     async deleteRPG(id: number) {
         validateId(id, 'RPG');
         await validateRPGExists(id);
         return await repository.deleteRPGById(id);
     }
 
+    /**
+     * Converts an RPG entity to an RPG DTO.
+     * 
+     * @param rpg - The RPG entity to be converted.
+     * @returns The RPG DTO.
+     */
     convertRPG(rpg: RPG): RPGDTO {
         const user = userService.convertUser(rpg.master as User);
         return {
@@ -74,5 +117,4 @@ export class RpgService {
             active: rpg.active
         }
     }
-
 }

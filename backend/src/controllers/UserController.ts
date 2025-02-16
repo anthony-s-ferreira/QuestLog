@@ -5,18 +5,30 @@ import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 
 const userService = new UserService();
 
+/**
+ * Creates a new user.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createUser = async (req: Request, res: Response) => {
     const { name, email, password, type } = req.body;
-    const userForm: UserFormDTO= {name, email, password, type};
+    const userForm: UserFormDTO = { name, email, password, type };
     try {
         validateRequestBody(userForm, res);
-        const user = await userService.createUser(name, email, password, type);
+        const user = await userService.createUser(userForm);
         res.status(201).json(user);
     } catch (error: Error | any) {
         console.log({ message: "Error creating user", error: error.message });
     }
 };
 
+/**
+ * Retrieves all users.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await userService.getAllUsers();
@@ -26,8 +38,14 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves a user by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getUserById = async (req: Request, res: Response) => {
-    let { id } = req.params;
+    const { id } = req.params;
     try {
         await validateUserId(Number(id), res);
         const user = await userService.getUserById(Number(id));
@@ -37,21 +55,33 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates a user by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, email, type, password } = req.body;
-    const userForm: UserFormDTO= {name, email, password, type};
+    const userForm: UserFormDTO = { name, email, password, type };
 
     try {
         await validateUserId(Number(id), res);
         validateRequestBody(userForm, res);
-        const updatedUser = await userService.updateUser(Number(id), name, email, type);
+        const updatedUser = await userService.updateUser(Number(id), userForm);
         res.status(200).json(updatedUser);
     } catch (error: Error | any) {
         console.log({ message: "Error updating user", error: error.message });
     }
 };
 
+/**
+ * Updates a user's password by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateUserPassword = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { password, newPassword } = req.body;
@@ -66,6 +96,12 @@ export const updateUserPassword = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Deletes a user by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteUser = async (req: Request, res: Response) => {
     const { id } = req.params;
 

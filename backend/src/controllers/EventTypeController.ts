@@ -1,13 +1,19 @@
 import { Request, Response } from 'express';
-import { validateEventTypeDescription, validateEventTypeId, validateEventTypeName, validateRequestBody } from '../validators/EventTypeValidator';
+import { validateEventTypeId, validateRequestBody } from '../validators/EventTypeValidator';
 import { EventTypeService } from '../services/EventTypeService';
 import { EventTypeFormDTO } from '../domain/formDTO/EventTypeFormDTO';
 
-const eventTypeService = new EventTypeService()
+const eventTypeService = new EventTypeService();
 
+/**
+ * Creates a new event type.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createEventType = async (req: Request, res: Response) => {
     const { name, description } = req.body;
-    const eventTypeForm: EventTypeFormDTO = {name, description}
+    const eventTypeForm: EventTypeFormDTO = { name, description };
     try {
         validateRequestBody(eventTypeForm, res);
         const eventType = await eventTypeService.createEventType(eventTypeForm);
@@ -17,6 +23,12 @@ export const createEventType = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves all event types.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEventTypes = async (req: Request, res: Response) => {
     try {
         const eventTypes = await eventTypeService.getEventTypes();
@@ -26,6 +38,12 @@ export const getEventTypes = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves an event type by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEventTypeById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -38,10 +56,16 @@ export const getEventTypeById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates an event type by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateEventType = async (req: Request, res: Response) => {
     const { name, description } = req.body;
     const { id } = req.params;
-    const eventTypeForm: EventTypeFormDTO = {name, description}
+    const eventTypeForm: EventTypeFormDTO = { name, description };
     try {
         validateRequestBody(eventTypeForm, res);
         await validateEventTypeId(Number(id), res);
@@ -52,6 +76,12 @@ export const updateEventType = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Deletes an event type by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteEventTypeById = async (req: Request, res: Response) => {
     const { id } = req.params;
 

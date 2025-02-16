@@ -116,6 +116,9 @@ router.get("/users/:id", getUserById);
  *               type:
  *                 type: string
  *                 example: "admin"
+ *               password:
+ *                 type: string
+ *                 example: "newpassword"
  *     responses:
  *       200:
  *         description: User updated successfully.
@@ -148,6 +151,9 @@ router.put("/users/:id", updateUser);
  *             type: object
  *             properties:
  *               password:
+ *                 type: string
+ *                 example: "oldpassword"
+ *               newPassword:
  *                 type: string
  *                 example: "newsecurepassword"
  *     responses:

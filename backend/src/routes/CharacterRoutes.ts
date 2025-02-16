@@ -51,12 +51,14 @@ router.post('/character', createCharacter);
  * /character:
  *   get:
  *     summary: Get all Characters
- *     description: Retrieves a list of all Characters.
+ *     description: Retrieves a list of all Characters in the system.
  *     tags:
  *       - Characters
  *     responses:
  *       200:
  *         description: List of Characters retrieved successfully.
+ *       500:
+ *         description: Internal server error.
  */
 router.get('/character', getAllCharacters);
 
@@ -74,7 +76,7 @@ router.get('/character', getAllCharacters);
  *         required: true
  *         schema:
  *           type: integer
- *         description: The Character ID
+ *         description: The Character ID.
  *     responses:
  *       200:
  *         description: Character retrieved successfully.
@@ -88,7 +90,7 @@ router.get('/character/:id', getCharacterById);
  * /character/{id}:
  *   put:
  *     summary: Update a Character
- *     description: Updates the details of an existing Character.
+ *     description: Updates the details of an existing Character by ID.
  *     tags:
  *       - Characters
  *     parameters:
@@ -97,7 +99,7 @@ router.get('/character/:id', getCharacterById);
  *         required: true
  *         schema:
  *           type: integer
- *         description: The Character ID
+ *         description: The Character ID.
  *     requestBody:
  *       required: true
  *       content:
@@ -126,7 +128,7 @@ router.put('/character/:id', updateCharacter);
  * /character/{id}:
  *   delete:
  *     summary: Delete a Character
- *     description: Removes a Character from the system.
+ *     description: Removes a Character from the system by ID.
  *     tags:
  *       - Characters
  *     parameters:
@@ -135,7 +137,7 @@ router.put('/character/:id', updateCharacter);
  *         required: true
  *         schema:
  *           type: integer
- *         description: The Character ID
+ *         description: The Character ID.
  *     responses:
  *       200:
  *         description: Character deleted successfully.

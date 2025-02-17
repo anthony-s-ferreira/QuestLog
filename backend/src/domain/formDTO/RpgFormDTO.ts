@@ -4,6 +4,6 @@
 export interface RPGFormDTO {
     name: string,
     description: string,
-    master?: number,
+    masterId?: number,
     active?: boolean
 }

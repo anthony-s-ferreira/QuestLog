@@ -20,7 +20,7 @@ export class RpgService {
     async createRPG(rpgFormDTO: RPGFormDTO) {
         validateRPGName(rpgFormDTO.name);
         validateRPGDescription(rpgFormDTO.description);
-        validateId(rpgFormDTO.master, 'User');
+        validateId(rpgFormDTO.masterid, 'User');
         validateRPGStatus(rpgFormDTO.active);
         const rpg = await repository.createRpg(rpgFormDTO);
         return this.convertRPG(rpg);

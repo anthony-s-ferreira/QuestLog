@@ -13,7 +13,7 @@ const rpgService = new RpgService();
  */
 export const createRPG = async (req: Request, res: Response) => {
     const { name, description, userId } = req.body;
-    const rpgFormDTO: RPGFormDTO = {name, description, master: userId, active: true}; 
+    const rpgFormDTO: RPGFormDTO = {name, description, masterid: Number(userId), active: true}; 
     try {
         await validateRequestBody(rpgFormDTO, res);
         const rpg = await rpgService.createRPG(rpgFormDTO);

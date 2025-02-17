@@ -26,7 +26,7 @@ export const validateRequestBody = async (body: RPGFormDTO, res: Response) => {
         res.status(400).json({ message: error.message });
     }
     if (body.master) {
-        await validateUserId(body.master, res);
+        await validateUserId(body.masterid, res);
     }
 }
 

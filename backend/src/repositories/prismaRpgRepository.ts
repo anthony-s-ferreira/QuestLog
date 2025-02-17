@@ -61,7 +61,7 @@ export const updateRpg = (id: number, input: any) => {
     return db.rPG.update(
         {
             where: { id }, 
-            data: input, 
+            data: {name: input.name, description: input.description}, 
             include: {
                 master: true
             }

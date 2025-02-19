@@ -65,15 +65,15 @@ export const getCharacterById = (id: number) => {
  * @param input - The character data to be updated.
  * @returns The updated character.
  */
-export const updateCharacter = (id: number, input: any) => {
+export const updateCharacter = (id: number, name: string) => {    
     return db.character.update({
         where: { id },
-        data: input,
+        data: { name },
         include: {
             owner: true,
             rpg: {
-                include: {
-                    master: true
+                include: { 
+                    master: true 
                 }
             }
         }

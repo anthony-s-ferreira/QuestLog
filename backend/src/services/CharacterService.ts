@@ -38,8 +38,7 @@ export class CharacterService {
      */
     async getAllCharacters() {
         const characters = await repository.getAllCharacters();
-        return await characters.map(char => this.convertCharacter(char));
-    }
+        return await Promise.all(characters.map(char => this.convertCharacter(char)));    }
 
     /**
      * Retrieves a character by ID.
@@ -68,7 +67,7 @@ export class CharacterService {
         const character = await repository.getCharacterById(id);
         character.name = name;
 
-        const updatedChar = await repository.updateCharacter(id, character);
+        const updatedChar = await repository.updateCharacter(id, name);
         return await this.convertCharacter(updatedChar);
     }
 

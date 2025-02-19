@@ -1,26 +1,34 @@
 import { Request, Response } from 'express';
-import { validateEventTypeId  } from '../validators/EventTypeValidator';
-import { validateCharacterId } from '../validators/CharacterValidator';
 import { EventService } from '../services/EventService';
-import { validateEventDescription, validateEventId, validateRequestBody } from '../validators/EventValidator';
+import { validateEventId, validateRequestBody } from '../validators/EventValidator';
+import { EventFormDTO } from '../domain/formDTO/EventFormDTO';
 
-const eventService = new EventService()
+const eventService = new EventService();
 
+/**
+ * Creates a new event.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const createEvent = async (req: Request, res: Response) => {
     const { description, characterId, typeId } = req.body;
-
+    const eventForm: EventFormDTO = { description, characterId, typeId };
     try {
-        validateRequestBody(req.body, res);
-        validateEventDescription(description, res);
-        await validateCharacterId(characterId, res)
-        await validateEventTypeId(typeId, res)
-        const rpg = await eventService.createEvent(description, typeId, characterId);
+        await validateRequestBody(eventForm, res);
+        const rpg = await eventService.createEvent(eventForm);
         res.status(201).json(rpg);
     } catch (error: Error | any) {
         console.log('Error creating Event:', error);
     }
 };
 
+/**
+ * Retrieves all events.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEvents = async (req: Request, res: Response) => {
     try {
         const events = await eventService.getEvents();
@@ -30,6 +38,12 @@ export const getEvents = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Retrieves an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const getEventById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -42,22 +56,33 @@ export const getEventById = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Updates an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const updateEvent = async (req: Request, res: Response) => {
     const { description, characterId, eventTypeId } = req.body;
+    const eventForm: EventFormDTO = { description, character: characterId, type: eventTypeId };
     const { id } = req.params;
     try {
         await validateEventId(Number(id), res);
-        await validateCharacterId(Number(id), res);
-        await validateEventTypeId(eventTypeId, res)
-        validateEventDescription(description, res);
+        await validateRequestBody(eventForm, res);
         
-        const event = await eventService.updateEvent(Number(id), description, eventTypeId, characterId);
+        const event = await eventService.updateEvent(Number(id), eventForm);
         res.status(201).json(event);
     } catch (error: Error | any) {
         console.log('Error updating Event with id:', id, error);
     }
 };
 
+/**
+ * Deletes an event by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
 export const deleteEventById = async (req: Request, res: Response) => {
     const { id } = req.params;
 

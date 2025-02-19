@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createEvent, deleteEventById, getEventById, getEventTypeById, getEvents, updateEvent } from "../controllers/EventController";
+import { createEvent, deleteEventById, getEventById, getEvents, updateEvent } from "../controllers/EventController";
 
 const router = Router();
 
@@ -57,6 +57,8 @@ router.post("/event", createEvent);
  *     responses:
  *       200:
  *         description: List of events retrieved successfully.
+ *       500:
+ *         description: Internal server error.
  */
 router.get("/event", getEvents);
 
@@ -97,6 +99,7 @@ router.get("/event/:id", getEventById);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: The event ID.
  *     requestBody:
  *       required: true
  *       content:
@@ -141,6 +144,7 @@ router.put("/event/:id", updateEvent);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: The event ID.
  *     responses:
  *       200:
  *         description: Event deleted successfully.

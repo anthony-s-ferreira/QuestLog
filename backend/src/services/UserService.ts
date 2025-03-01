@@ -7,7 +7,6 @@ import { UserFormDTO } from "../domain/formDTO/UserFormDTO";
 import { UserType } from "../domain/enums/UserType";
 import { generateToken } from "../config/jwt";
 import bcrypt from "bcrypt";
-import { login } from "./AuthService";
 
 export class UserService {
 

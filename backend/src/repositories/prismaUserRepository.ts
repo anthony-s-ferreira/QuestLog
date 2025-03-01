@@ -66,3 +66,13 @@ export const updateUserPassword = (id: number, newPassword: string) => {
 export const deleteUserById = (id: number) => {
     return db.user.delete({ where: { id } });
 };
+
+/**
+ * Retrieves a user by email.
+ * 
+ * @param email - The email of the user to be retrieved.
+ * @returns The user with the specified email.
+ */
+export const getUserByEmail = (email: string) => {
+    return db.user.findUnique({ where: { email } });
+}

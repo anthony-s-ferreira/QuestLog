@@ -2,9 +2,11 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
 import { validateRequestBody, validateUserId, validateUserPasswordUpdate } from '../validators/UserValidator';
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
+import { validateUserLoginBody } from '../validators/AuthValidator';
+import { AuthService } from '../services/AuthService';
 
 const userService = new UserService();
-
+const authService = new AuthService();
 /**
  * Creates a new user.
  * 
@@ -20,6 +22,22 @@ export const createUser = async (req: Request, res: Response) => {
         res.status(201).json(user);
     } catch (error: Error | any) {
         console.log({ message: "Error creating user", error: error.message });
+    }
+};
+
+/**
+ * Logs in a user.
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const login = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    try {
+        validateUserLoginBody(req.body, res);
+        const token = await authService.login(email, password);
+        res.status(200).json({ token });
+    } catch (error: Error | any) {
+        console.log({ message: "Error logging in", error: error.message });
     }
 };
 

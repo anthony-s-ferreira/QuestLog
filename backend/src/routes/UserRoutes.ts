@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser } from "../controllers/UserController";
+import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser, login } from "../controllers/UserController";
 
 const router = Router();
 
@@ -12,7 +12,7 @@ const router = Router();
 
 /**
  * @swagger
- * /users:
+ * /user/register:
  *   post:
  *     summary: Create a new user
  *     description: Adds a new user to the system.
@@ -38,7 +38,7 @@ const router = Router();
  *                 example: "john.doe@email.com"
  *               password:
  *                 type: string
- *                 example: "123456"
+ *                 example: "123456@Ab"
  *               type:
  *                 type: string
  *                 example: "admin"
@@ -48,7 +48,7 @@ const router = Router();
  *       400:
  *         description: Invalid input data.
  */
-router.post("/users", createUser);
+router.post("/user/register", createUser);
 
 /**
  * @swagger
@@ -187,5 +187,40 @@ router.patch("/users/:id/password", updateUserPassword);
  *         description: User not found.
  */
 router.delete("/users/:id", deleteUser);
+
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: Log in a user
+ *     description: Log in a user to the system.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - type
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "john.doe@email.com"
+ *               password:
+ *                 type: string
+ *                 example: "123456@Ab"
+ *     responses:
+ *       200:
+ *         description: User logged in successfully.
+ *       400:
+ *         description: Invalid input data.
+ */
+router.post("/user/login", login);
+
 
 export { router as userRoutes };

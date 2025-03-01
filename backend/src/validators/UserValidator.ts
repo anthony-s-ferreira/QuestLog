@@ -187,3 +187,17 @@ export const validateUserId = async (id: number, res: Response) => {
         res.status(404).json({ message: error.message });
     }
 }
+
+
+/**
+ * Validates if a user with the given email exists in the repository.
+ * 
+ * @param email - The email address to check for existence.
+ * @throws Will throw an error if the user is not found.
+ */
+export const validateUserEmailExists = async (email: string) => {
+    const user = await repository.getUserByEmail(email);
+    if (!user) {
+        throw new Error('User not found.');
+    }
+}

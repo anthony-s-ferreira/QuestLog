@@ -5,6 +5,9 @@ import { validateId } from "../validators/CommonValidator";
 import { UserDTO } from "../domain/DTO/UserDTO";
 import { UserFormDTO } from "../domain/formDTO/UserFormDTO";
 import { UserType } from "../domain/enums/UserType";
+import { generateToken } from "../config/jwt";
+import bcrypt from "bcrypt";
+import { login } from "./AuthService";
 
 export class UserService {
 
@@ -12,21 +15,21 @@ export class UserService {
      * Creates a new user.
      * 
      * @param userForm - The user data to be created.
-     * @returns The created user.
+     * @returns The user's token.
      */
     async createUser(userForm: UserFormDTO) {
         validateUserName(userForm.name);
         validateUserEmail(userForm.email);
         validateUserType(userForm.type);
         validateUserPassword(userForm.password);
-
+        const hashedPassword = await bcrypt.hash(userForm.password, 10);
         const user = { 
             name: userForm.name, 
             email: userForm.email, 
-            password: userForm.password, 
+            password: hashedPassword, 
             type: userForm.type as UserType
         } as User;
-        return repository.createUser(user);
+        return generateToken((await repository.createUser(user)).id);
     }
 
     /**
@@ -91,9 +94,10 @@ export class UserService {
         validateUserPassword(newPassword);
         
         const user = await this.getUser(id);
-        user.password = newPassword;
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
 
-        const updatedUser = await repository.updateUserPassword(id, newPassword);
+        const updatedUser = await repository.updateUserPassword(id, hashedPassword);
         return this.convertUser(updatedUser);
     }
 
@@ -137,6 +141,10 @@ export class UserService {
         validateId(id, 'User');
         await this.validateUserExists(id);
         return await repository.getUserById(id);
+    }
+
+    async getUserByEmail(email: string) {
+        return await repository.getUserByEmail(email);
     }
 
     /**

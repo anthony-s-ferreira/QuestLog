@@ -33,6 +33,9 @@ app.use(eventRoutes);
 
 // Setup Swagger
 setupSwagger(app);
+app.get('/api-docs-json', (req, res) => {
+  res.json(swaggerDocument);
+});
 
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);

@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { createCharacter, getAllCharacters, getCharacterById, updateCharacter, deleteCharacter } from "../controllers/CharacterController";
+import { createCharacter, getAllCharacters, getCharacterById, updateCharacter, deleteCharacter, getCharactersByUserId } from "../controllers/CharacterController";
+import authMiddleware from "../middlewares/authMiddleware";
+import { CharacterEditPermissionMiddleware, CharacterPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -44,11 +46,11 @@ const router = Router();
  *       400:
  *         description: Invalid input data.
  */
-router.post('/character', createCharacter);
+router.post('/character', authMiddleware, createCharacter);
 
 /**
  * @swagger
- * /character:
+ * /characters:
  *   get:
  *     summary: Get all Characters
  *     description: Retrieves a list of all Characters in the system.
@@ -60,7 +62,7 @@ router.post('/character', createCharacter);
  *       500:
  *         description: Internal server error.
  */
-router.get('/character', getAllCharacters);
+router.get('/characters', authMiddleware, getCharactersByUserId);
 
 /**
  * @swagger
@@ -83,7 +85,7 @@ router.get('/character', getAllCharacters);
  *       404:
  *         description: Character not found.
  */
-router.get('/character/:id', getCharacterById);
+router.get('/character/:id', authMiddleware, CharacterPermissionMiddleware, getCharacterById);
 
 /**
  * @swagger
@@ -121,7 +123,7 @@ router.get('/character/:id', getCharacterById);
  *       404:
  *         description: Character not found.
  */
-router.put('/character/:id', updateCharacter);
+router.put('/character/:id', authMiddleware, CharacterEditPermissionMiddleware, updateCharacter);
 
 /**
  * @swagger
@@ -144,6 +146,6 @@ router.put('/character/:id', updateCharacter);
  *       404:
  *         description: Character not found.
  */
-router.delete('/character/:id', deleteCharacter);
+router.delete('/character/:id', authMiddleware, CharacterEditPermissionMiddleware, deleteCharacter);
 
 export { router as characterRoutes };

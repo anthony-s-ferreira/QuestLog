@@ -89,3 +89,23 @@ export const updateCharacter = (id: number, name: string) => {
 export const deleteCharacterById = (id: number) => {
     return db.character.delete({ where: { id } });
 };
+
+/**
+ * Retrieves all characters for a specific user.
+ * 
+ * @param userId - The ID of the user whose characters are to be retrieved.
+ * @returns A list of characters that belong to the specified user.
+ */
+export const getCharactersByUserId = (userId: number) => {
+    return db.character.findMany({
+        where: { ownerId: userId },
+        include: {
+            owner: true,
+            rpg: {
+                include: {
+                    master: true
+                }
+            }
+        }
+    });
+};

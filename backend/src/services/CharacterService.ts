@@ -81,6 +81,13 @@ export class CharacterService {
         return await repository.deleteCharacterById(id);
     }
 
+    async getCharactersByUserId(userId: number) {
+        validateId(userId, 'User');
+        await validateUserExists(userId);
+        const characters = await repository.getCharactersByUserId(userId);
+        return await Promise.all(characters.map(char => this.convertCharacter(char)));
+    }
+
     /**
      * Converts a character entity to a character DTO.
      * 

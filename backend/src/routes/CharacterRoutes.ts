@@ -28,15 +28,11 @@ const router = Router();
  *             type: object
  *             required:
  *               - name
- *               - ownerId
  *               - rpgId
  *             properties:
  *               name:
  *                 type: string
  *                 example: "John the Brave"
- *               ownerId:
- *                 type: integer
- *                 example: 1
  *               rpgId:
  *                 type: integer
  *                 example: 2

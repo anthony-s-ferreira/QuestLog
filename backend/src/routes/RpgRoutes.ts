@@ -29,7 +29,6 @@ const router = Router();
  *             required:
  *               - name
  *               - description
- *               - userId
  *             properties:
  *               name:
  *                 type: string
@@ -37,9 +36,6 @@ const router = Router();
  *               description:
  *                 type: string
  *                 example: "An epic adventure in a magical world."
- *               userId:
- *                 type: integer
- *                 example: 1
  *     responses:
  *       201:
  *         description: RPG created successfully.

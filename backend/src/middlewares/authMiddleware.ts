@@ -8,7 +8,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   }
   try {
     const decoded = verifyToken(token.split(' ')[1]);
-    req.body.userId = decoded;
+    req.body.userId = Number(decoded.id);
     next();
   } catch (error) {
     res.status(400).send('Invalid token.');

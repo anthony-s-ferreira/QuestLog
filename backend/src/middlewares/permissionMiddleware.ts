@@ -21,7 +21,7 @@ const RPGEditPermissionMiddleware = async (req: Request, res: Response, next: Ne
         }
         else {
             res.status(403).send('Access denied. You do not have permission to edit this RPG.');
-            throw new Error('Access denied. You do not have permission to edit this RPG.')
+            console.log('Access denied. You do not have permission to edit this RPG.')
         }
     }
 };
@@ -38,7 +38,7 @@ const RPGPermissionMiddleware = async (req: Request, res: Response, next: NextFu
         }
         else {
             res.status(403).send('Access denied. You do not have permission to access this RPG.');
-            throw new Error('Access denied. You do not have permission to access this RPG.')
+            console.log('Access denied. You do not have permission to access this RPG.')
         }
     }
 };
@@ -55,7 +55,7 @@ const EventEditPermissionMiddleware = async (req: Request, res: Response, next: 
         }
         else {
             res.status(403).send('Access denied. You do not have permission to access this Event.');
-            throw new Error('Access denied. You do not have permission to access this Event.')
+            console.log('Access denied. You do not have permission to access this Event.')
         }
     }
 };
@@ -66,7 +66,7 @@ const EventTypePermissionMiddleware = async (req: Request, res: Response, next: 
     }
     else {
         res.status(403).send('Access denied. You do not have permission to edit event types.');
-        throw new Error('Access denied. You do not have permission to edit event types.')
+        console.log('Access denied. You do not have permission to edit event types.')
     }
 }
 
@@ -81,7 +81,7 @@ const UserEditPermissionMiddleware = async (req: Request, res: Response, next: N
         }
         else {
             res.status(403).send('Access denied. You do not have permission to edit this user.');
-            throw new Error('Access denied. You do not have permission to edit this user.')
+            console.log('Access denied. You do not have permission to edit this user.')
         }
     }
 };
@@ -98,7 +98,7 @@ const CharacterEditPermissionMiddleware = async (req: Request, res: Response, ne
         }
         else {
             res.status(403).send('Access denied. You do not have permission to edit this character.');
-            throw new Error('Access denied. You do not have permission to edit this character.')
+            console.log('Access denied. You do not have permission to edit this character.')
         }
     }
 };
@@ -115,7 +115,7 @@ const CharacterPermissionMiddleware = async (req: Request, res: Response, next: 
         }
         else {
             res.status(403).send('Access denied. You do not have permission to access this character.');
-            throw new Error('Access denied. You do not have permission to access this character.')
+            console.log('Access denied. You do not have permission to access this character.')
         }
     }
 };
@@ -126,7 +126,7 @@ const AdminPermissionMiddleware = async (req: Request, res: Response, next: Next
     }
     else {
         res.status(403).send('Access denied. You do not have permission to access this resource.');
-        throw new Error('Access denied. You do not have permission to access this resource.')
+        console.log('Access denied. You do not have permission to access this resource.')
     }
 }
 

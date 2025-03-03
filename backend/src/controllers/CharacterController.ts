@@ -12,8 +12,9 @@ const characterService = new CharacterService();
  * @param res - Express response object
  */
 export const createCharacter = async (req: Request, res: Response) => {
-    const { name, ownerId, rpgId } = req.body;
-    const charForm: CharacterFormDTO = { name, ownerId, rpgId };
+    const { name, rpgId, userId } = req.body;
+    const userIdN = Number(userId);
+    const charForm: CharacterFormDTO = { name, ownerId: userIdN, rpgId };
     try {
         await validateRequestBody(charForm, res);
         const character = await characterService.createCharacter(charForm);
@@ -45,7 +46,7 @@ export const getAllCharacters = async (req: Request, res: Response) => {
  * @param res - Express response object
  */
 export const getCharactersByUserId = async (req: Request, res: Response) => {
-    const { userId } = req.body.userId;
+    const { userId } = req.body;
     try {
         const characters = await characterService.getCharactersByUserId(Number(userId));
         res.status(200).json(characters);

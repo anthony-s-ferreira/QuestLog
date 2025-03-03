@@ -39,6 +39,22 @@ export const getAllCharacters = async (req: Request, res: Response) => {
 };
 
 /**
+ * Retrieves all characters by user ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const getCharactersByUserId = async (req: Request, res: Response) => {
+    const { userId } = req.body.userId;
+    try {
+        const characters = await characterService.getCharactersByUserId(Number(userId));
+        res.status(200).json(characters);
+    } catch (error: Error | any) {
+        console.log('Error getting Characters:', error);
+    }
+};
+
+/**
  * Retrieves a character by ID.
  * 
  * @param req - Express request object

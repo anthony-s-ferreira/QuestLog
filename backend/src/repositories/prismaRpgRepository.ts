@@ -97,3 +97,27 @@ export const updateRPGStatus = async (id: number, rpg: RPG) => {
 export const deleteRPGById = (id: number) => {
     return db.rPG.delete({ where: { id } });
 }
+
+/**
+ * Retrieves all RPGs for a specific user.
+ * 
+ * @param userId - The ID of the user whose RPGs are to be retrieved.
+ * @returns A list of RPGs that belong to or include the specified user.
+ */
+export const getRpgsByUserId = (userId: number) => {
+    return db.rPG.findMany({
+        where: {
+            OR: [
+                { masterid: userId },
+                { characters: { some: { ownerId: userId } } }
+            ]
+        },
+        include: {
+            master: true
+        }
+    });
+};
+
+export function getRpgUsers(rpgId: number) {
+    return db.rPG.findUnique({where: {id: rpgId}, include: {characters: true}});
+}

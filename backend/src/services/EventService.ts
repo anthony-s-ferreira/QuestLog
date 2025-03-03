@@ -8,13 +8,25 @@ import { validateEventDescription, validateEventExists } from '../validators/Eve
 import { CharacterService } from './CharacterService';
 import { EventTypeService } from './EventTypeService';
 import { validateId } from '../validators/CommonValidator';
-import { UserService } from './UserService';
-import { RpgService } from './RpgService';
+import { validateRPGExists } from '../validators/RpgValidator';
 
 const eventTypeService = new EventTypeService();
 const characterService = new CharacterService();
 
 export class EventService {
+
+    /**
+     *  Retrieves all events for an RPG by ID.
+     *  
+     * @param rpgId - The ID of the RPG to retrieve events for.
+     * @returns A list of all events for the RPG with the specified ID.
+     */
+    async getEventsByRPGId(rpgId: number) {
+        validateId(rpgId, 'RPG');
+        await validateRPGExists(rpgId);
+        const events = await repository.getEventsByRPGId(rpgId);
+        return await events.map(event => this.convertEvent(event));
+    }
 
     /**
      * Creates a new event.

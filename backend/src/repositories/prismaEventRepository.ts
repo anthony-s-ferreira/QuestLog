@@ -73,3 +73,23 @@ export const getEvent = (id: number) => {
 export const deleteEvent = (id: number) => {
     return db.event.delete({ where: { id } });
 }
+
+/**
+ * Retrieves all events for a specific RPG.
+ * 
+ * @param rpgId - The ID of the RPG whose events are to be retrieved.
+ * @returns A list of events that belong to the specified RPG.
+ */
+export const getEventsByRPGId = (rpgId: number) => {
+    return db.event.findMany({
+        where: {
+            character: {
+                rpgId: rpgId
+            }
+        },
+        include: {
+            character: true,
+            type: true
+        }
+    });
+};

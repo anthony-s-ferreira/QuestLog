@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { createEventType, deleteEventTypeById, getEventTypeById, getEventTypes, updateEventType } from "../controllers/EventTypeController";
+import authMiddleware from "../middlewares/authMiddleware";
+import { AdminPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -39,7 +41,7 @@ const router = Router();
  *       400:
  *         description: Invalid input data.
  */
-router.post('/eventType', createEventType);
+router.post('/eventType', authMiddleware, AdminPermissionMiddleware, createEventType);
 
 /**
  * @swagger
@@ -52,7 +54,7 @@ router.post('/eventType', createEventType);
  *       200:
  *         description: List of event types retrieved successfully.
  */
-router.get('/eventType', getEventTypes);
+router.get('/eventType', authMiddleware, getEventTypes);
 
 /**
  * @swagger
@@ -74,7 +76,7 @@ router.get('/eventType', getEventTypes);
  *       404:
  *         description: Event type not found.
  */
-router.get('/eventType/:id', getEventTypeById);
+router.get('/eventType/:id', authMiddleware, getEventTypeById);
 
 /**
  * @swagger
@@ -113,7 +115,7 @@ router.get('/eventType/:id', getEventTypeById);
  *       404:
  *         description: Event type not found.
  */
-router.put('/eventType/:id', updateEventType);
+router.put('/eventType/:id', authMiddleware, AdminPermissionMiddleware, updateEventType);
 
 /**
  * @swagger
@@ -134,6 +136,6 @@ router.put('/eventType/:id', updateEventType);
  *       404:
  *         description: Event type not found.
  */
-router.delete('/eventType/:id', deleteEventTypeById);
+router.delete('/eventType/:id', authMiddleware, AdminPermissionMiddleware, deleteEventTypeById);
 
 export { router as eventTypeRoutes };

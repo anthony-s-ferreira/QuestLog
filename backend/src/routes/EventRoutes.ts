@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { createEvent, deleteEventById, getEventById, getEvents, updateEvent } from "../controllers/EventController";
+import authMiddleware from "../middlewares/authMiddleware";
+import { EventEditPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -44,23 +46,7 @@ const router = Router();
  *       400:
  *         description: Invalid request data.
  */
-router.post("/event", createEvent);
-
-/**
- * @swagger
- * /event:
- *   get:
- *     summary: Retrieves all events
- *     description: Returns a list of all events in the system.
- *     tags:
- *       - Events
- *     responses:
- *       200:
- *         description: List of events retrieved successfully.
- *       500:
- *         description: Internal server error.
- */
-router.get("/event", getEvents);
+router.post("/event", authMiddleware, createEvent);
 
 /**
  * @swagger
@@ -83,7 +69,7 @@ router.get("/event", getEvents);
  *       404:
  *         description: Event not found.
  */
-router.get("/event/:id", getEventById);
+router.get("/event/:id", authMiddleware, EventEditPermissionMiddleware, getEventById);
 
 /**
  * @swagger
@@ -128,7 +114,7 @@ router.get("/event/:id", getEventById);
  *       404:
  *         description: Event not found.
  */
-router.put("/event/:id", updateEvent);
+router.put("/event/:id", authMiddleware, EventEditPermissionMiddleware, updateEvent);
 
 /**
  * @swagger
@@ -151,6 +137,6 @@ router.put("/event/:id", updateEvent);
  *       404:
  *         description: Event not found.
  */
-router.delete("/event/:id", deleteEventById);
+router.delete("/event/:id", authMiddleware, EventEditPermissionMiddleware, deleteEventById);
 
 export { router as eventRoutes };

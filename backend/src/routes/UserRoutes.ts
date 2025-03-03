@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser, login } from "../controllers/UserController";
+import authMiddleware from "../middlewares/authMiddleware";
+import { AdminPermissionMiddleware, UserEditPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -52,20 +54,6 @@ router.post("/user/register", createUser);
 
 /**
  * @swagger
- * /users:
- *   get:
- *     summary: Get a list of users
- *     description: Returns all registered users.
- *     tags:
- *       - Users
- *     responses:
- *       200:
- *         description: Successfully retrieved user list.
- */
-router.get("/users", getAllUsers);
-
-/**
- * @swagger
  * /users/{id}:
  *   get:
  *     summary: Get user by ID
@@ -84,7 +72,7 @@ router.get("/users", getAllUsers);
  *       404:
  *         description: User not found.
  */
-router.get("/users/:id", getUserById);
+router.get("/users/:id", authMiddleware, getUserById);
 
 /**
  * @swagger
@@ -127,7 +115,7 @@ router.get("/users/:id", getUserById);
  *       404:
  *         description: User not found.
  */
-router.put("/users/:id", updateUser);
+router.put("/users/:id", authMiddleware, UserEditPermissionMiddleware, updateUser);
 
 /**
  * @swagger
@@ -164,7 +152,7 @@ router.put("/users/:id", updateUser);
  *       404:
  *         description: User not found.
  */
-router.patch("/users/:id/password", updateUserPassword);
+router.patch("/users/:id/password", authMiddleware, updateUserPassword);
 
 /**
  * @swagger
@@ -186,7 +174,7 @@ router.patch("/users/:id/password", updateUserPassword);
  *       404:
  *         description: User not found.
  */
-router.delete("/users/:id", deleteUser);
+router.delete("/users/:id", authMiddleware, UserEditPermissionMiddleware, deleteUser);
 
 /**
  * @swagger

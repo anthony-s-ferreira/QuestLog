@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { RpgService } from "../services/RpgService";
 import { validateRequestBody, validateRPGId, validateRPGStatusPatch } from '../validators/RpgValidator';
 import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
+import { EventService } from '../services/EventService';
 
 const rpgService = new RpgService();
+const eventService = new EventService();
 
 /**
  * Creates a new RPG.
@@ -35,6 +37,37 @@ export const getAllRPGs = async (req: Request, res: Response) => {
         res.status(200).json(rpgs);
     } catch (error: Error | any) {
         console.log('Error getting RPGs:', error);
+    }
+};
+
+/**
+ * Retrieves all RPGs by user ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const getRPGsByUserId = async (req: Request, res: Response) => {
+    const { userId } = req.body.userId;
+    try {
+        const rpgs = await rpgService.getRPGByUserId(Number(userId));
+        res.status(200).json(rpgs);
+    } catch (error: Error | any) {
+        console.log('Error getting RPGs:', error);
+    }
+};
+
+/**
+ * Retrieves all events for an RPG by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const getRPGEvents = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const events = await eventService.getEventsByRPGId(Number(id));
+    } catch (error: Error | any) {
+        console.log('Error getting RPG events:', error);
     }
 };
 

@@ -44,7 +44,7 @@ router.get('/admin/rpgs', authMiddleware, AdminPermissionMiddleware, getAllRPGs)
  *       500:
  *         description: Internal server error.
  */
-router.get('/admin/characters', authMiddleware, getAllCharacters);
+router.get('/admin/characters', authMiddleware, AdminPermissionMiddleware, getAllCharacters);
 
 /**
  * @swagger
@@ -60,7 +60,7 @@ router.get('/admin/characters', authMiddleware, getAllCharacters);
  *       500:
  *         description: Internal server error.
  */
-router.get("/admin/events", authMiddleware, getEvents);
+router.get("/admin/events", authMiddleware, AdminPermissionMiddleware, getEvents);
 
 /**
  * @swagger
@@ -90,6 +90,6 @@ router.get("/admin/users", authMiddleware, AdminPermissionMiddleware, getAllUser
  *       500:
  *         description: Internal server error.
  */
-router.get("/admin/events", authMiddleware, getEvents);
+router.get("/admin/events", authMiddleware, AdminPermissionMiddleware, getEvents);
 
 export { router as adminRoutes };

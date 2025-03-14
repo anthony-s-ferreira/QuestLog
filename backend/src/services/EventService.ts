@@ -76,12 +76,20 @@ export class EventService {
     }
 
     /**
-     * Retrieves all events.
+     * Retrieves all events paginated.
      * 
+     * 
+     * @param page - The page number.
+     * @param limit - The number of events per page.
      * @returns A list of all events.
      */
-    async getEvents() {
-        const events = await repository.getEvents();
+    async getEvents(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+        
+        validatePage(page);
+        validateLimit(limit);
+        const events = await repository.getEvents(page, limit);
         return await events.map(event => this.convertEvent(event));
     }
 

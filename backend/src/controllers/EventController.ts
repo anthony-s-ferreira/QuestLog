@@ -23,21 +23,30 @@ export const createEvent = async (req: Request, res: Response) => {
     }
 };
 
+import { Request, Response } from 'express';
+import { EventService } from "../services/EventService";
+import { validatePageAndLimit } from '../validators/CommonValidator';
+
+const eventService = new EventService();
+
 /**
- * Retrieves all events.
+ * Retrieves all events with pagination.
  * 
  * @param req - Express request object
  * @param res - Express response object
  */
 export const getEvents = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
     try {
-        const events = await eventService.getEvents();
+        validatePageAndLimit(page, limit, res);
+        const events = await eventService.getEvents(page, limit);
         res.status(200).json(events);
     } catch (error: Error | any) {
-        console.log('Error retrieving Events:', error);
+        console.log('Error getting events:', error);
     }
 };
-
 /**
  * Retrieves an event by ID.
  * 

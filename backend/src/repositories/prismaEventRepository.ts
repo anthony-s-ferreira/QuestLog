@@ -35,18 +35,23 @@ export const updateEvent = (id: number, input: any) => {
 };
 
 /**
- * Retrieves all events.
+ * Retrieves all events with pagination.
  * 
- * @returns A list of all events.
+ * @param page - The page number.
+ * @param limit - The number of events per page.
+ * @returns A list of events.
  */
-export const getEvents = () => {
+export const getEvents = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
     return db.event.findMany({
+        skip: offset,
+        take: limit,
         include: {
             character: true,
             type: true
-        },
+        }
     });
-}
+};
 
 /**
  * Retrieves an event by ID.

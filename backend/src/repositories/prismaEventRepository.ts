@@ -75,12 +75,15 @@ export const deleteEvent = (id: number) => {
 }
 
 /**
- * Retrieves all events for a specific RPG.
+ * Retrieves all events for a specific RPG with pagination.
  * 
  * @param rpgId - The ID of the RPG whose events are to be retrieved.
+ * @param page - The page number.
+ * @param limit - The number of events per page.
  * @returns A list of events that belong to the specified RPG.
  */
-export const getEventsByRPGId = (rpgId: number) => {
+export const getEventsByRPGId = (rpgId: number, page: number, limit: number) => {
+    const offset = (page - 1) * limit;
     return db.event.findMany({
         where: {
             character: {
@@ -90,6 +93,8 @@ export const getEventsByRPGId = (rpgId: number) => {
         include: {
             character: true,
             type: true
-        }
+        },
+        skip: offset,
+        take: limit
     });
 };

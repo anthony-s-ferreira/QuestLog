@@ -63,7 +63,7 @@ router.get('/rpgs', authMiddleware, getRPGsByUserId);
  * /rpg/{id}/events:
  *   get:
  *     summary: Get all events for an RPG
- *     description: Retrieves a list of all events for a specific RPG.
+ *     description: Retrieves a list of all events for a specific RPG with pagination.
  *     tags:
  *       - RPGs
  *     parameters:
@@ -73,9 +73,23 @@ router.get('/rpgs', authMiddleware, getRPGsByUserId);
  *         schema:
  *           type: integer
  *         description: The RPG ID
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: The page number
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: The number of events per page
  *     responses:
  *       200:
  *         description: List of events retrieved successfully.
+ *       400:
+ *         description: Invalid input data.
  *       404:
  *         description: RPG not found.
  */

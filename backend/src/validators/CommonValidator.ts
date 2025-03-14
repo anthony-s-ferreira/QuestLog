@@ -1,3 +1,5 @@
+import { Response } from 'express';
+
 /**
  * Validates an ID.
  * 
@@ -16,5 +18,27 @@ export const validateId = (id: number, type: string) => {
 
     if (id < 0) {
         throw new Error(`${type} ID must be a positive number.`);
+    }
+}
+
+export const validatePageAndLimit = (page: number, limit: number, res: Response) => {
+    try {
+        validatePage(page);
+        validateLimit(limit);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+}
+
+export const validatePage = (page: number) => {
+    if (page < 1) {
+        throw new Error('Page must be a positive integer.');
+    }
+}
+
+export const validateLimit = (limit: number) => {
+    if (limit < 1) {
+        throw new Error('Limit must be a positive integer.');
     }
 }

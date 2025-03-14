@@ -10,7 +10,7 @@ import * as repository from '../repositories/prismaUserRepository';
  * @param {Response} res - The response object used to send error responses.
  * @throws {Error} - Throws an error if validation fails.
  */
-export const validateRequestBody = (body: UserFormDTO, res: Response) => {
+export const validateRequestBody = async (body: UserFormDTO, res: Response) => {
     if (Object.keys(body).length === 0) {
         res.status(400).json({ message: 'User is required.' });
         throw new Error('User is required.');
@@ -18,6 +18,7 @@ export const validateRequestBody = (body: UserFormDTO, res: Response) => {
     try {
         validateUserName(body.name);
         validateUserEmail(body.email);
+        await validateUserEmailExistsRegister(body.email);
         validateUserPassword(body.password);
         validateUserType(body.type);
     } catch (error) {
@@ -195,9 +196,32 @@ export const validateUserId = async (id: number, res: Response) => {
  * @param email - The email address to check for existence.
  * @throws Will throw an error if the user is not found.
  */
-export const validateUserEmailExists = async (email: string) => {
-    const user = await repository.getUserByEmail(email);
+export const validateUserEmailExistsLogin = async (email: string) => {
+    const user = await getUserByEmail(email);
     if (!user) {
         throw new Error('User not found.');
     }
+}
+
+/**
+ * Guarantees that a user with the given email does not already exist in the repository.
+ * 
+ * @param email - The email address to check for existence.
+ * @throws Will throw an error if the user is found.
+ */
+export const validateUserEmailExistsRegister = async (email: string) => {
+    const user = await getUserByEmail(email);
+    if (user) {
+        throw new Error('User already exists.');
+    }
+}
+
+/**
+ * Validates if a user with the given email exists in the repository.
+ * 
+ * @param email - The email address to check for existence.
+ */
+const getUserByEmail = async (email: string) => {
+    const user = await repository.getUserByEmail(email);
+    return user;
 }

@@ -19,18 +19,21 @@ export const createRpg = (input: any) => {
 }
 
 /**
- * Retrieves all RPGs.
+ * Retrieves all RPGs with pagination.
  * 
- * @returns A list of all RPGs.
+ * @param page - The page number.
+ * @param limit - The number of RPGs per page.
+ * @returns A list of RPGs.
  */
-export const getAllRpgs = () => {
-    return db.rPG.findMany(
-        {
-            include: {
-                master: true
-            }
+export const getAllRpgs = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
+    return db.rPG.findMany({
+        skip: offset,
+        take: limit,
+        include: {
+            master: true
         }
-    );
+    });
 };
 
 /**

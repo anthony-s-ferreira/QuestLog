@@ -3,7 +3,7 @@ import { RPG } from "../domain/entities/Rpg";
 import { User } from "../domain/entities/User";
 import { RPGFormDTO } from "../domain/formDTO/RpgFormDTO";
 import * as repository from "../repositories/prismaRpgRepository";
-import { validateId } from "../validators/CommonValidator";
+import { validateId, validateLimit, validatePage } from "../validators/CommonValidator";
 import { validateRPGDescription, validateRPGExists, validateRPGName, validateRPGStatus } from "../validators/RpgValidator";
 import { validateUserExists } from "../validators/UserValidator";
 import { UserService } from "./UserService";
@@ -27,12 +27,20 @@ export class RpgService {
     }
 
     /**
-     * Retrieves all RPGs.
+     * Retrieves all RPGs paginated.
      * 
-     * @returns A list of all RPGs.
+     * @param page - The page number.
+     * @param limit - The number of items per page.
+     * 
+     * @returns A list of all RPGs paginated.
      */
-    async getAllRPGs() {
-        const rpgs = await repository.getAllRpgs();
+    async getAllRPGs(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+        
+        validatePage(page);
+        validateLimit(limit);
+        const rpgs = await repository.getAllRpgs(page, limit);
         return rpgs.map(rpg => this.convertRPG(rpg));
     }
 

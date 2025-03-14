@@ -1,7 +1,7 @@
 import * as repository from "../repositories/prismaUserRepository";
 import { User } from "../domain/entities/User";
 import { validateUserEmail, validateUserName, validateUserPassword, validateUserType } from "../validators/UserValidator";
-import { validateId } from "../validators/CommonValidator";
+import { validateId, validateLimit, validatePage } from "../validators/CommonValidator";
 import { UserDTO } from "../domain/DTO/UserDTO";
 import { UserFormDTO } from "../domain/formDTO/UserFormDTO";
 import { UserType } from "../domain/enums/UserType";
@@ -32,11 +32,19 @@ export class UserService {
     }
 
     /**
-     * Retrieves all users.
+     * Retrieves all users paginated.
+     * 
+     * @param page - The page number.
+     * @param limit - The number of items per page.
      * 
      * @returns A list of all users.
      */
-    async getAllUsers() {
+    async getAllUsers(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+
+        validatePage(page);
+        validateLimit(limit);
         const users = await repository.getAllUsers();
         return users.map(user => this.convertUser({
             ...user,

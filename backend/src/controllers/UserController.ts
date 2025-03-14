@@ -4,6 +4,7 @@ import { validateRequestBody, validateUserId, validateUserPasswordUpdate } from 
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 import { validateUserLoginBody } from '../validators/AuthValidator';
 import { AuthService } from '../services/AuthService';
+import { validatePageAndLimit } from '../validators/CommonValidator';
 
 const userService = new UserService();
 const authService = new AuthService();
@@ -42,17 +43,21 @@ export const login = async (req: Request, res: Response) => {
 };
 
 /**
- * Retrieves all users.
+ * Retrieves all users with pagination.
  * 
  * @param req - Express request object
  * @param res - Express response object
  */
 export const getAllUsers = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
     try {
-        const users = await userService.getAllUsers();
+        validatePageAndLimit(page, limit, res);
+        const users = await userService.getAllUsers(page, limit);
         res.status(200).json(users);
     } catch (error: Error | any) {
-        res.status(500).json({ message: "Error retrieving users", error: error.message });
+        console.log('Error getting users:', error);
     }
 };
 

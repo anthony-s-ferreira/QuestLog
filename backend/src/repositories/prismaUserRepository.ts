@@ -11,12 +11,18 @@ export const createUser = (input: any) => {
 };
 
 /**
- * Retrieves all users.
+ * Retrieves all users with pagination.
  * 
- * @returns A list of all users.
+ * @param page - The page number.
+ * @param limit - The number of users per page.
+ * @returns A list of users.
  */
-export const getAllUsers = () => {
-    return db.user.findMany();
+export const getAllUsers = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
+    return db.user.findMany({
+        skip: offset,
+        take: limit
+    });
 };
 
 /**

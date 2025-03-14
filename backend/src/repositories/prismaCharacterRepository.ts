@@ -21,12 +21,17 @@ export const createCharacter = (input: any) => {
 };
 
 /**
- * Retrieves all characters.
+ * Retrieves all characters with pagination.
  * 
- * @returns A list of all characters.
+ * @param page - The page number.
+ * @param limit - The number of characters per page.
+ * @returns A list of characters.
  */
-export const getAllCharacters = () => {
+export const getAllCharacters = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
     return db.character.findMany({
+        skip: offset,
+        take: limit,
         include: {
             owner: true,
             rpg: {

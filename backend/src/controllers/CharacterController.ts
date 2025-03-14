@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CharacterService } from "../services/CharacterService";
 import { validateCharacterId, validatePatchCharacterName, validateRequestBody } from '../validators/CharacterValidator';
 import { CharacterFormDTO } from '../domain/formDTO/CharacterFormDTO';
+import { validatePage, validatePageAndLimit } from '../validators/CommonValidator';
 
 const characterService = new CharacterService();
 
@@ -25,17 +26,21 @@ export const createCharacter = async (req: Request, res: Response) => {
 };
 
 /**
- * Retrieves all characters.
+ * Retrieves all characters with pagination.
  * 
  * @param req - Express request object
  * @param res - Express response object
  */
 export const getAllCharacters = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
     try {
-        const characters = await characterService.getAllCharacters();
+        validatePageAndLimit(page, limit, res);
+        const characters = await characterService.getAllCharacters(page, limit);
         res.status(200).json(characters);
     } catch (error: Error | any) {
-        console.log('Error getting Characters:', error);
+        console.log('Error getting characters:', error);
     }
 };
 

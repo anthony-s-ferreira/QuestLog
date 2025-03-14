@@ -3,7 +3,7 @@ import * as repository from "../repositories/prismaCharacterRepository";
 import { RpgService } from "./RpgService";
 import { CharacterFormDTO } from "../domain/formDTO/CharacterFormDTO";
 import { validateCharacterExists, validateCharacterName, validateRequestBody } from "../validators/CharacterValidator";
-import { validateId } from "../validators/CommonValidator";
+import { validateId, validateLimit, validatePage } from "../validators/CommonValidator";
 import { validateUserExists } from "../validators/UserValidator";
 import { validateRPGExists } from "../validators/RpgValidator";
 import { CharacterDTO } from "../domain/DTO/CharacterDTO";
@@ -32,13 +32,21 @@ export class CharacterService {
     }
 
     /**
-     * Retrieves all characters.
+     * Retrieves all characters paginated.
+     * 
+     * @param page - The page number.
+     * @param limit - The number of items per page.
      * 
      * @returns A list of all characters.
      */
-    async getAllCharacters() {
-        const characters = await repository.getAllCharacters();
-        return await Promise.all(characters.map(char => this.convertCharacter(char)));    }
+    async getAllCharacters(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+
+        validatePage(page);
+        validateLimit(limit);
+        const characters = await repository.getAllCharacters(page, limit);
+        return await Promise.all(characters.map(char => this.convertCharacter(char)));}
 
     /**
      * Retrieves a character by ID.

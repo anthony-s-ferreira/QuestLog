@@ -23,11 +23,7 @@ export const createEvent = async (req: Request, res: Response) => {
     }
 };
 
-import { Request, Response } from 'express';
-import { EventService } from "../services/EventService";
-import { validatePageAndLimit } from '../validators/CommonValidator';
 
-const eventService = new EventService();
 
 /**
  * Retrieves all events with pagination.

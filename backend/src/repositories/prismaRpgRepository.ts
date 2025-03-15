@@ -19,18 +19,21 @@ export const createRpg = (input: any) => {
 }
 
 /**
- * Retrieves all RPGs.
+ * Retrieves all RPGs with pagination.
  * 
- * @returns A list of all RPGs.
+ * @param page - The page number.
+ * @param limit - The number of RPGs per page.
+ * @returns A list of RPGs.
  */
-export const getAllRpgs = () => {
-    return db.rPG.findMany(
-        {
-            include: {
-                master: true
-            }
+export const getAllRpgs = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
+    return db.rPG.findMany({
+        skip: offset,
+        take: limit,
+        include: {
+            master: true
         }
-    );
+    });
 };
 
 /**
@@ -96,4 +99,28 @@ export const updateRPGStatus = async (id: number, rpg: RPG) => {
  */
 export const deleteRPGById = (id: number) => {
     return db.rPG.delete({ where: { id } });
+}
+
+/**
+ * Retrieves all RPGs for a specific user.
+ * 
+ * @param userId - The ID of the user whose RPGs are to be retrieved.
+ * @returns A list of RPGs that belong to or include the specified user.
+ */
+export const getRpgsByUserId = (userId: number) => {
+    return db.rPG.findMany({
+        where: {
+            OR: [
+                { masterid: userId },
+                { characters: { some: { ownerId: userId } } }
+            ]
+        },
+        include: {
+            master: true
+        }
+    });
+};
+
+export function getRpgUsers(rpgId: number) {
+    return db.rPG.findUnique({where: {id: rpgId}, include: {characters: true}});
 }

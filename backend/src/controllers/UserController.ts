@@ -2,9 +2,12 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
 import { validateRequestBody, validateUserId, validateUserPasswordUpdate } from '../validators/UserValidator';
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
+import { validateUserLoginBody } from '../validators/AuthValidator';
+import { AuthService } from '../services/AuthService';
+import { validatePageAndLimit } from '../validators/CommonValidator';
 
 const userService = new UserService();
-
+const authService = new AuthService();
 /**
  * Creates a new user.
  * 
@@ -24,17 +27,37 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 /**
- * Retrieves all users.
+ * Logs in a user.
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const login = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    try {
+        validateUserLoginBody(req.body, res);
+        const token = await authService.login(email, password);
+        res.status(200).json({ token });
+    } catch (error: Error | any) {
+        console.log({ message: "Error logging in", error: error.message });
+    }
+};
+
+/**
+ * Retrieves all users with pagination.
  * 
  * @param req - Express request object
  * @param res - Express response object
  */
 export const getAllUsers = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
     try {
-        const users = await userService.getAllUsers();
+        validatePageAndLimit(page, limit, res);
+        const users = await userService.getAllUsers(page, limit);
         res.status(200).json(users);
     } catch (error: Error | any) {
-        res.status(500).json({ message: "Error retrieving users", error: error.message });
+        console.log('Error getting users:', error);
     }
 };
 

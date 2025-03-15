@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser } from "../controllers/UserController";
+import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser, login } from "../controllers/UserController";
+import authMiddleware from "../middlewares/authMiddleware";
+import { AdminPermissionMiddleware, UserEditPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const router = Router();
 
 /**
  * @swagger
- * /users:
+ * /user/register:
  *   post:
  *     summary: Create a new user
  *     description: Adds a new user to the system.
@@ -38,7 +40,7 @@ const router = Router();
  *                 example: "john.doe@email.com"
  *               password:
  *                 type: string
- *                 example: "123456"
+ *                 example: "123456@Ab"
  *               type:
  *                 type: string
  *                 example: "admin"
@@ -48,21 +50,7 @@ const router = Router();
  *       400:
  *         description: Invalid input data.
  */
-router.post("/users", createUser);
-
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: Get a list of users
- *     description: Returns all registered users.
- *     tags:
- *       - Users
- *     responses:
- *       200:
- *         description: Successfully retrieved user list.
- */
-router.get("/users", getAllUsers);
+router.post("/user/register", createUser);
 
 /**
  * @swagger
@@ -84,7 +72,7 @@ router.get("/users", getAllUsers);
  *       404:
  *         description: User not found.
  */
-router.get("/users/:id", getUserById);
+router.get("/users/:id", authMiddleware, getUserById);
 
 /**
  * @swagger
@@ -127,7 +115,7 @@ router.get("/users/:id", getUserById);
  *       404:
  *         description: User not found.
  */
-router.put("/users/:id", updateUser);
+router.put("/users/:id", authMiddleware, UserEditPermissionMiddleware, updateUser);
 
 /**
  * @swagger
@@ -164,7 +152,7 @@ router.put("/users/:id", updateUser);
  *       404:
  *         description: User not found.
  */
-router.patch("/users/:id/password", updateUserPassword);
+router.patch("/users/:id/password", authMiddleware, updateUserPassword);
 
 /**
  * @swagger
@@ -186,6 +174,41 @@ router.patch("/users/:id/password", updateUserPassword);
  *       404:
  *         description: User not found.
  */
-router.delete("/users/:id", deleteUser);
+router.delete("/users/:id", authMiddleware, UserEditPermissionMiddleware, deleteUser);
+
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: Log in a user
+ *     description: Log in a user to the system.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - type
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "john.doe@email.com"
+ *               password:
+ *                 type: string
+ *                 example: "123456@Ab"
+ *     responses:
+ *       200:
+ *         description: User logged in successfully.
+ *       400:
+ *         description: Invalid input data.
+ */
+router.post("/user/login", login);
+
 
 export { router as userRoutes };

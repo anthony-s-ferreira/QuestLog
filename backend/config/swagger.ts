@@ -16,6 +16,20 @@ const swaggerDefinition = {
       description: "QuestLog backend",
     },
   ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
+  security: [
+    {
+      bearerAuth: [],
+    },
+  ],
 };
 
 const options = {
@@ -27,4 +41,7 @@ const swaggerSpec = swaggerJSDoc(options);
 
 export function setupSwagger(app: Application): void {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get("/api-docs-json", (_req, res) => {
+    res.json(swaggerSpec);
+  });
 }

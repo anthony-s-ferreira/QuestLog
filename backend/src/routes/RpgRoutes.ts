@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { createRPG, deleteRPG, getAllRPGs, getRPGById, updateRPG, updateRPGStatus } from "../controllers/RpgController";
+import { createRPG, deleteRPG, getAllRPGs, getRPGById, getRPGEvents, getRPGsByUserId, updateRPG, updateRPGStatus } from "../controllers/RpgController";
+import authMiddleware from '../middlewares/authMiddleware';
+import { RPGEditPermissionMiddleware, RPGPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
 const router = Router();
 
@@ -27,7 +29,6 @@ const router = Router();
  *             required:
  *               - name
  *               - description
- *               - userId
  *             properties:
  *               name:
  *                 type: string
@@ -35,20 +36,17 @@ const router = Router();
  *               description:
  *                 type: string
  *                 example: "An epic adventure in a magical world."
- *               userId:
- *                 type: integer
- *                 example: 1
  *     responses:
  *       201:
  *         description: RPG created successfully.
  *       400:
  *         description: Invalid input data.
  */
-router.post('/rpg', createRPG);
+router.post('/rpg', authMiddleware, createRPG);
 
 /**
  * @swagger
- * /rpg:
+ * /rpgs:
  *   get:
  *     summary: Get all RPGs
  *     description: Retrieves a list of all RPGs.
@@ -58,7 +56,44 @@ router.post('/rpg', createRPG);
  *       200:
  *         description: List of RPGs retrieved successfully.
  */
-router.get('/rpg', getAllRPGs);
+router.get('/rpgs', authMiddleware, getRPGsByUserId);
+
+/**
+ * @swagger
+ * /rpg/{id}/events:
+ *   get:
+ *     summary: Get all events for an RPG
+ *     description: Retrieves a list of all events for a specific RPG with pagination.
+ *     tags:
+ *       - RPGs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The RPG ID
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: The page number
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: The number of events per page
+ *     responses:
+ *       200:
+ *         description: List of events retrieved successfully.
+ *       400:
+ *         description: Invalid input data.
+ *       404:
+ *         description: RPG not found.
+ */
+router.get('/rpg/:id/events', authMiddleware, RPGPermissionMiddleware, getRPGEvents);
 
 /**
  * @swagger
@@ -81,7 +116,7 @@ router.get('/rpg', getAllRPGs);
  *       404:
  *         description: RPG not found.
  */
-router.get('/rpg/:id', getRPGById);
+router.get('/rpg/:id', authMiddleware, RPGPermissionMiddleware, getRPGById);
 
 /**
  * @swagger
@@ -119,7 +154,7 @@ router.get('/rpg/:id', getRPGById);
  *       404:
  *         description: RPG not found.
  */
-router.put('/rpg/:id', updateRPG);
+router.put('/rpg/:id', authMiddleware, RPGEditPermissionMiddleware, updateRPG);
 
 /**
  * @swagger
@@ -154,7 +189,7 @@ router.put('/rpg/:id', updateRPG);
  *       404:
  *         description: RPG not found.
  */
-router.patch('/rpg/:id', updateRPGStatus);
+router.patch('/rpg/:id', authMiddleware, RPGEditPermissionMiddleware, updateRPGStatus);
 
 /**
  * @swagger
@@ -177,6 +212,6 @@ router.patch('/rpg/:id', updateRPGStatus);
  *       404:
  *         description: RPG not found.
  */
-router.delete('/rpg/:id', deleteRPG);
+router.delete('/rpg/:id', authMiddleware, RPGEditPermissionMiddleware, deleteRPG);
 
 export { router as rpgRoutes };

@@ -7,14 +7,30 @@ import { validateEventTypeExists } from '../validators/EventTypeValidator';
 import { validateEventDescription, validateEventExists } from '../validators/EventValidator';
 import { CharacterService } from './CharacterService';
 import { EventTypeService } from './EventTypeService';
-import { validateId } from '../validators/CommonValidator';
-import { UserService } from './UserService';
-import { RpgService } from './RpgService';
+import { validateId, validateLimit, validatePage } from '../validators/CommonValidator';
+import { validateRPGExists } from '../validators/RpgValidator';
 
 const eventTypeService = new EventTypeService();
 const characterService = new CharacterService();
 
 export class EventService {
+
+    /**
+     *  Retrieves all events for an RPG by ID.
+     *  
+     * @param rpgId - The ID of the RPG to retrieve events for.
+     * @returns A list of all events for the RPG with the specified ID.
+     */
+    async getEventsByRPGId(rpgId: number, page: number, limit: number) {
+        validateId(rpgId, 'RPG');
+        page = page || 1;
+        limit = limit || 10;
+        validatePage(page);
+        validateLimit(limit);
+        await validateRPGExists(rpgId);
+        const events = await repository.getEventsByRPGId(rpgId, page, limit);
+        return await Promise.all(events.map((event: Event) => this.convertEvent(event)));
+    }
 
     /**
      * Creates a new event.
@@ -60,13 +76,23 @@ export class EventService {
     }
 
     /**
-     * Retrieves all events.
+     * Retrieves all events paginated.
      * 
+     * 
+     * @param page - The page number.
+     * @param limit - The number of events per page.
      * @returns A list of all events.
      */
-    async getEvents() {
-        const events = await repository.getEvents();
-        return await events.map(event => this.convertEvent(event));
+    async getEvents(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+        
+        validatePage(page);
+        validateLimit(limit);
+        const events = await repository.getEvents(page, limit);
+        const eventsDTO = await Promise.all(events.map((event: Event) => this.convertEvent(event)));
+        
+        return await eventsDTO;
     }
 
     /**
@@ -100,7 +126,7 @@ export class EventService {
      */
     async convertEvent(event: Event): EventDTO {
         const char = await characterService.getCharacterById(event.characterId);
-        const eventType = eventTypeService.convertEventType(event);
+        const eventType = eventTypeService.convertEventType(event.type);
         const dto: EventDTO = {
             id: event.id,
             description: event.description,

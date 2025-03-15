@@ -3,12 +3,12 @@ import { RPG } from "../domain/entities/Rpg";
 import { User } from "../domain/entities/User";
 import { RPGFormDTO } from "../domain/formDTO/RpgFormDTO";
 import * as repository from "../repositories/prismaRpgRepository";
-import { validateId } from "../validators/CommonValidator";
+import { validateId, validateLimit, validatePage } from "../validators/CommonValidator";
 import { validateRPGDescription, validateRPGExists, validateRPGName, validateRPGStatus } from "../validators/RpgValidator";
+import { validateUserExists } from "../validators/UserValidator";
 import { UserService } from "./UserService";
 
 const userService = new UserService();
-
 export class RpgService {
 
     /**
@@ -27,13 +27,21 @@ export class RpgService {
     }
 
     /**
-     * Retrieves all RPGs.
+     * Retrieves all RPGs paginated.
      * 
-     * @returns A list of all RPGs.
+     * @param page - The page number.
+     * @param limit - The number of items per page.
+     * 
+     * @returns A list of all RPGs paginated.
      */
-    async getAllRPGs() {
-        const rpgs = await repository.getAllRpgs();
-        return rpgs.map(rpg => this.convertRPG(rpg));
+    async getAllRPGs(page: number, limit: number) {
+        page = page || 1;
+        limit = limit || 10;
+        
+        validatePage(page);
+        validateLimit(limit);
+        const rpgs = await repository.getAllRpgs(page, limit);
+        return await Promise.all(rpgs.map(rpg => this.convertRPG(rpg)));
     }
 
     /**
@@ -71,6 +79,19 @@ export class RpgService {
     }
 
     /**
+     * Retrieves all RPGs by user ID.
+     * 
+     * @param userId - The ID of the user whose RPGs are to be retrieved.
+     * @returns A list of all RPGs by the specified user.
+     */
+    async getRPGByUserId(userId: number) {
+        validateId(userId, 'User');
+        await validateUserExists(userId);
+        const rpgs = await repository.getRpgsByUserId(userId);
+        return await Promise.all(rpgs.map(rpg => this.convertRPG(rpg)));
+    }
+
+    /**
      * Updates the status of an RPG by ID.
      * 
      * @param id - The ID of the RPG whose status is to be updated.
@@ -99,6 +120,28 @@ export class RpgService {
         validateId(id, 'RPG');
         await validateRPGExists(id);
         return await repository.deleteRPGById(id);
+    }
+
+    /**
+     * Verifies if an user is in a RPG.
+     * 
+     * @param rpgId - The ID of the RPG to be validated.
+     * @param userId - The ID of the user to be validated.
+     * @returns 
+     */
+    async validateUserInRPG(rpgId: number, userId: number) {
+        validateId(rpgId, 'RPG');
+        validateId(userId, 'User');
+        await validateRPGExists(rpgId);
+        await validateUserExists(userId);
+        const rpg = await repository.getRpgUsers(rpgId);
+        if (rpg?.masterid === userId) {
+            return true;
+        }
+        if (rpg?.characters.find(character => character.ownerId === userId)) {
+            return true;
+        }
+        return false;
     }
 
     /**

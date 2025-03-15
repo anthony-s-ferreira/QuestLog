@@ -6,6 +6,7 @@ import { characterRoutes } from './routes/CharacterRoutes';
 import { eventTypeRoutes } from './routes/EventTypeRoutes';
 import { eventRoutes } from './routes/EventRoutes';
 import cors from "cors";
+import { adminRoutes } from './routes/AdminRoutes';
 
 const app: express.Application = express();
 const port = process.env.PORT || 3000;
@@ -30,9 +31,13 @@ app.use(rpgRoutes);
 app.use(characterRoutes);
 app.use(eventTypeRoutes);
 app.use(eventRoutes);
+app.use(adminRoutes);
 
 // Setup Swagger
 setupSwagger(app);
+app.get('/api-docs-json', (req, res) => {
+  res.json(swaggerDocument);
+});
 
 const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);

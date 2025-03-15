@@ -21,12 +21,17 @@ export const createCharacter = (input: any) => {
 };
 
 /**
- * Retrieves all characters.
+ * Retrieves all characters with pagination.
  * 
- * @returns A list of all characters.
+ * @param page - The page number.
+ * @param limit - The number of characters per page.
+ * @returns A list of characters.
  */
-export const getAllCharacters = () => {
+export const getAllCharacters = (page: number, limit: number) => {
+    const offset = (page - 1) * limit;
     return db.character.findMany({
+        skip: offset,
+        take: limit,
         include: {
             owner: true,
             rpg: {
@@ -88,4 +93,24 @@ export const updateCharacter = (id: number, name: string) => {
  */
 export const deleteCharacterById = (id: number) => {
     return db.character.delete({ where: { id } });
+};
+
+/**
+ * Retrieves all characters for a specific user.
+ * 
+ * @param userId - The ID of the user whose characters are to be retrieved.
+ * @returns A list of characters that belong to the specified user.
+ */
+export const getCharactersByUserId = (userId: number) => {
+    return db.character.findMany({
+        where: { ownerId: userId },
+        include: {
+            owner: true,
+            rpg: {
+                include: {
+                    master: true
+                }
+            }
+        }
+    });
 };

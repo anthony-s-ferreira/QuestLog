@@ -41,7 +41,7 @@ export class RpgService {
         validatePage(page);
         validateLimit(limit);
         const rpgs = await repository.getAllRpgs(page, limit);
-        return rpgs.map(rpg => this.convertRPG(rpg));
+        return await Promise.all(rpgs.map(rpg => this.convertRPG(rpg)));
     }
 
     /**
@@ -88,7 +88,7 @@ export class RpgService {
         validateId(userId, 'User');
         await validateUserExists(userId);
         const rpgs = await repository.getRpgsByUserId(userId);
-        return rpgs.map(rpg => this.convertRPG(rpg));
+        return await Promise.all(rpgs.map(rpg => this.convertRPG(rpg)));
     }
 
     /**

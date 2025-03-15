@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { EventService } from '../services/EventService';
 import { validateEventId, validateRequestBody } from '../validators/EventValidator';
 import { EventFormDTO } from '../domain/formDTO/EventFormDTO';
+import { validatePageAndLimit } from '../validators/CommonValidator';
 
 const eventService = new EventService();
 
@@ -10,7 +11,7 @@ const eventService = new EventService();
  * 
  * @param req - Express request object
  * @param res - Express response object
- */
+ */ 
 export const createEvent = async (req: Request, res: Response) => {
     const { description, characterId, typeId } = req.body;
     const eventForm: EventFormDTO = { description, characterId, typeId };

@@ -46,10 +46,10 @@ export class UserService {
         validatePage(page);
         validateLimit(limit);
         const users = await repository.getAllUsers();
-        return users.map(user => this.convertUser({
+        return Promise.all(users.map(user => this.convertUser({
             ...user,
             type: user.type as UserType
-        }));
+        })));
     }
 
     /**

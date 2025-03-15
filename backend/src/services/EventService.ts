@@ -28,8 +28,8 @@ export class EventService {
         validatePage(page);
         validateLimit(limit);
         await validateRPGExists(rpgId);
-        const events = await repository.getEventsByRPGId(rpgId);
-        return await events.map(event => this.convertEvent(event));
+        const events = await repository.getEventsByRPGId(rpgId, page, limit);
+        return await Promise.all(events.map((event: Event) => this.convertEvent(event)));
     }
 
     /**
@@ -90,7 +90,9 @@ export class EventService {
         validatePage(page);
         validateLimit(limit);
         const events = await repository.getEvents(page, limit);
-        return await events.map(event => this.convertEvent(event));
+        const eventsDTO = await Promise.all(events.map((event: Event) => this.convertEvent(event)));
+        
+        return await eventsDTO;
     }
 
     /**
@@ -124,7 +126,7 @@ export class EventService {
      */
     async convertEvent(event: Event): EventDTO {
         const char = await characterService.getCharacterById(event.characterId);
-        const eventType = eventTypeService.convertEventType(event);
+        const eventType = eventTypeService.convertEventType(event.type);
         const dto: EventDTO = {
             id: event.id,
             description: event.description,

@@ -74,7 +74,6 @@ export class CharacterService {
         validateCharacterName(name);
         const character = await repository.getCharacterById(id);
         character.name = name;
-
         const updatedChar = await repository.updateCharacter(id, name);
         return await this.convertCharacter(updatedChar);
     }
@@ -86,6 +85,8 @@ export class CharacterService {
      * @returns The result of the deletion.
      */
     async deleteCharacter(id: number) {
+        validateId(id, 'Character');
+        await validateCharacterExists(id);
         return await repository.deleteCharacterById(id);
     }
 

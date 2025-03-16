@@ -74,7 +74,6 @@ export class CharacterService {
         validateCharacterName(name);
         const character = await repository.getCharacterById(id);
         character.name = name;
-
         const updatedChar = await repository.updateCharacter(id, name);
         return await this.convertCharacter(updatedChar);
     }
@@ -86,6 +85,8 @@ export class CharacterService {
      * @returns The result of the deletion.
      */
     async deleteCharacter(id: number) {
+        validateId(id, 'Character');
+        await validateCharacterExists(id);
         return await repository.deleteCharacterById(id);
     }
 
@@ -93,8 +94,10 @@ export class CharacterService {
         validateId(userId, 'User');
         await validateUserExists(userId);
         const characters = await repository.getCharactersByUserId(userId);
-        return await Promise.all(characters.map(char => this.convertCharacter(char)));
-    }
+        const filtered = characters.filter(c => c.owner?.id === userId);
+        return Promise.all(filtered.map(c => this.convertCharacter(c)));
+      }
+      
 
     /**
      * Converts a character entity to a character DTO.

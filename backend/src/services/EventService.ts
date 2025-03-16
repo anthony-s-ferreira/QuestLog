@@ -115,6 +115,8 @@ export class EventService {
      * @returns The result of the deletion.
      */
     async deleteEvent(id: number) {
+        validateId(id, 'Event');
+        await validateEventExists(id);
         return await repository.deleteEvent(id);
     }
 

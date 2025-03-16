@@ -722,16 +722,27 @@ describe('CharacterService', () => {
             }
         });
 
-        it('should return characters for a valid user', async () => {
+        it('should return only the characters owned by the specified user', async () => {
+            validatorStub.validateId.returns();
+            validatorStub.validateUserExists.resolves();
+            const names = ['Char1', 'Char2']
             const characters = [
-                { id: 1, name: 'Char1', owner: { id: 10 }, rpg: { id: 20 } },
-                { id: 2, name: 'Char2', owner: { id: 10 }, rpg: { id: 20 } },
+              { id: 1, name: 'Char1', owner: { id: 10 }, rpg: { id: 20 } },
+              { id: 2, name: 'Char2', owner: { id: 10 }, rpg: { id: 20 } },
+              { id: 3, name: 'Char3', owner: { id: 11 }, rpg: { id: 21 } },
             ];
+            
             repositoryStub.getCharactersByUserId.resolves(characters);
-
+          
             const result = await characterService.getCharactersByUserId(10);
+
             expect(result).to.have.length(2);
             expect(repositoryStub.getCharactersByUserId.calledOnce).to.be.true;
-        });
+          
+            result.forEach(char => {
+              expect(char.name).to.be.oneOf(names);
+            });
+          });
+          
     });
 });

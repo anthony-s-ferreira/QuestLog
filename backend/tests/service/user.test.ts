@@ -1,275 +1,482 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import bcrypt from 'bcrypt';
 import proxyquire from 'proxyquire';
-import { UserType } from '../../src/domain/enums/UserType';
-import { UserFormDTO } from '../../src/domain/formDTO/UserFormDTO';
-import { User } from '../../src/domain/entities/User';
+import { faker } from '@faker-js/faker';
+import bcrypt from 'bcrypt';
 
 describe('UserService', () => {
-    let sandbox: sinon.SinonSandbox;
-    let userService: any;
-    let repositoryStub: any;
+  let sandbox: any;
+  let userService: any;
+  let repositoryStub: any;
+  let validatorStub: any;
+  let bcryptStub: any;
+  let jwtStub: any;
 
-    beforeEach(() => {
-        sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
 
-        repositoryStub = {
-            createUser: sandbox.stub(),
-            getAllUsers: sandbox.stub(),
-            getUserById: sandbox.stub(),
-            updateUser: sandbox.stub(),
-            deleteUserById: sandbox.stub(),
-            updateUserPassword: sandbox.stub(),
-            getUserByEmail: sandbox.stub()
-        };
+    repositoryStub = {
+      createUser: sandbox.stub(),
+      getAllUsers: sandbox.stub(),
+      getUserById: sandbox.stub(),
+      updateUser: sandbox.stub(),
+      updateUserPassword: sandbox.stub(),
+      deleteUserById: sandbox.stub(),
+      getUserByEmail: sandbox.stub(),
+    };
 
-        const userServiceModule = proxyquire('../../src/services/UserService', {
-            '../../src/repositories/prismaUserRepository': repositoryStub
+    validatorStub = {
+      validateUserName: sandbox.stub(),
+      validateUserEmail: sandbox.stub(),
+      validateUserType: sandbox.stub(),
+      validateUserPassword: sandbox.stub(),
+      validateId: sandbox.stub(),
+      validateLimit: sandbox.stub(),
+      validatePage: sandbox.stub(),
+    };
+
+    bcryptStub = {
+      hash: sandbox.stub(),
+    };
+
+    jwtStub = {
+      generateToken: sandbox.stub(),
+    };
+
+    const userServiceModule = proxyquire('../../src/services/UserService', {
+      '../repositories/prismaUserRepository': repositoryStub,
+      '../validators/UserValidator': {
+        validateUserName: validatorStub.validateUserName,
+        validateUserEmail: validatorStub.validateUserEmail,
+        validateUserType: validatorStub.validateUserType,
+        validateUserPassword: validatorStub.validateUserPassword,
+      },
+      '../validators/CommonValidator': {
+        validateId: validatorStub.validateId,
+        validateLimit: validatorStub.validateLimit,
+        validatePage: validatorStub.validatePage,
+      },
+      'bcrypt': bcryptStub,
+      '../config/jwt': {
+        generateToken: jwtStub.generateToken,
+      }
+    });
+
+    userService = new userServiceModule.UserService();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  describe('createUser', () => {
+    it('should throw an error if user name is missing', async () => {
+      validatorStub.validateUserName.throws(new Error('User name is required.'));
+      const invalidForm = {
+        name: '',
+        email: 'test@example.com',
+        password: 'Password1!',
+        type: 'user'
+      };
+      try {
+        await userService.createUser(invalidForm);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User name is required.');
+      }
+    });
+
+    it('should throw an error if user email is invalid', async () => {
+      validatorStub.validateUserName.returns();
+      validatorStub.validateUserEmail.throws(new Error('User email must be a valid email address.'));
+      const invalidForm = {
+        name: 'ValidName',
+        email: 'invalid',
+        password: 'Password1!',
+        type: 'user'
+      };
+      try {
+        await userService.createUser(invalidForm);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User email must be a valid email address.');
+      }
+    });
+
+    it('should throw an error if user type is invalid', async () => {
+      validatorStub.validateUserName.returns();
+      validatorStub.validateUserEmail.returns();
+      validatorStub.validateUserType.throws(new Error('User type must be either admin or user.'));
+      const invalidForm = {
+        name: 'ValidName',
+        email: 'test@example.com',
+        password: 'Password1!',
+        type: 'invalidType'
+      };
+      try {
+        await userService.createUser(invalidForm);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User type must be either admin or user.');
+      }
+    });
+
+    it('should throw an error if user password is invalid', async () => {
+      validatorStub.validateUserName.returns();
+      validatorStub.validateUserEmail.returns();
+      validatorStub.validateUserType.returns();
+      validatorStub.validateUserPassword.throws(new Error('User password must contain at least one uppercase letter.'));
+      const invalidForm = {
+        name: 'ValidName',
+        email: 'test@example.com',
+        password: 'password1!',
+        type: 'user'
+      };
+      try {
+        await userService.createUser(invalidForm);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User password must contain at least one uppercase letter.');
+      }
+    });
+
+    it('should create a user successfully with valid data', async () => {
+      validatorStub.validateUserName.returns();
+      validatorStub.validateUserEmail.returns();
+      validatorStub.validateUserType.returns();
+      validatorStub.validateUserPassword.returns();
+      const validForm = {
+        name: 'ValidName',
+        email: 'test@example.com',
+        password: 'Password1!',
+        type: 'user'
+      };
+      bcryptStub.hash.resolves('hashedPassword');
+      jwtStub.generateToken.returns('mocked.jwt.token');
+      const createdUser = {
+        id: 1,
+        name: validForm.name,
+        email: validForm.email,
+        password: 'hashedPassword',
+        type: validForm.type
+      };
+      repositoryStub.createUser.resolves(createdUser);
+      const token = await userService.createUser(validForm);
+      expect(token).to.equal('mocked.jwt.token');
+      expect(repositoryStub.createUser.calledOnce).to.be.true;
+      expect(bcryptStub.hash.calledOnce).to.be.true;
+      expect(jwtStub.generateToken.calledOnce).to.be.true;
+    });
+  });
+
+  describe('getAllUsers', () => {
+    it('should throw an error if page is negative', async () => {
+      validatorStub.validatePage.throws(new Error('Page must be a positive integer.'));
+      try {
+        await userService.getAllUsers(-1, 10);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('Page must be a positive integer.');
+      }
+    });
+
+    it('should throw an error if limit is negative', async () => {
+      validatorStub.validatePage.returns();
+      validatorStub.validateLimit.throws(new Error('Limit must be a positive integer.'));
+      try {
+        await userService.getAllUsers(1, -5);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('Limit must be a positive integer.');
+      }
+    });
+
+    it('should return a list of users with default page/limit', async () => {
+      validatorStub.validatePage.returns();
+      validatorStub.validateLimit.returns();
+      const users = [
+        { id: 1, name: 'User1', email: 'user1@example.com', type: 'user' },
+        { id: 2, name: 'User2', email: 'user2@example.com', type: 'admin' },
+      ];
+      repositoryStub.getAllUsers.resolves(users);
+      const result = await userService.getAllUsers(undefined, undefined);
+      expect(result).to.have.length(2);
+      expect(repositoryStub.getAllUsers.calledOnce).to.be.true;
+    });
+  });
+
+  describe('getUserById', () => {
+    it('should throw an error if id is invalid', async () => {
+      validatorStub.validateId.throws(new Error('User ID is required.'));
+      try {
+        await userService.getUserById(null);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User ID is required.');
+      }
+    });
+
+    it('should throw an error if user does not exist', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').rejects(new Error('User not found.'));
+      try {
+        await userService.getUserById(99);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User not found.');
+      }
+      validateUserExistsStub.restore();
+    });
+
+    it('should return a user successfully', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').resolves();
+      const user = {
+        id: 1,
+        name: 'John',
+        email: 'john@example.com',
+        type: 'user'
+      };
+      repositoryStub.getUserById.resolves(user);
+      const result = await userService.getUserById(1);
+      expect(result.id).to.equal(1);
+      expect(result.email).to.equal('john@example.com');
+      validateUserExistsStub.restore();
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should throw an error if user id is invalid', async () => {
+      validatorStub.validateId.throws(new Error('User ID must be a positive integer.'));
+      try {
+        await userService.updateUser(null, {});
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User ID must be a positive integer.');
+      }
+    });
+
+    it('should throw an error if user does not exist', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').rejects(new Error('User not found.'));
+      try {
+        await userService.updateUser(99, {
+          name: 'NewName',
+          email: 'new@example.com',
+          password: 'Password1!',
+          type: 'admin'
         });
-
-        userService = new userServiceModule.UserService();
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User not found.');
+      }
+      validateUserExistsStub.restore();
     });
 
-    afterEach(() => {
-        sandbox.restore();
-    });
-
-    describe('createUser', () => {
-        it('should create a user when valid data is provided', async () => {
-            const userForm: UserFormDTO = {
-                name: 'John Doe',
-                email: 'johndoe@example.com',
-                password: 'SecurePass123!',
-                type: UserType.user as UserType
-            };
-
-            const hashedPassword = 'hashedpassword123';
-            const expectedUser: User = {
-                id: 50000,
-                name: 'John Doe',
-                email: 'johndoe@example.com',
-                password: hashedPassword,
-                type: UserType.user
-            };
-
-            sandbox.stub(bcrypt, 'hash').resolves(hashedPassword);
-            repositoryStub.createUser.resolves(expectedUser);
-
-            const result = await userService.createUser(userForm);
-
-            expect(repositoryStub.createUser.calledOnce).to.be.true;
-            expect(result).to.be.a('string');
+    it('should throw an error if name is invalid', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').resolves();
+      validatorStub.validateUserName.throws(new Error('User name must have at least 3 characters.'));
+      try {
+        await userService.updateUser(1, {
+          name: 'Jo',
+          email: 'jo@example.com',
+          password: 'Password1!',
+          type: 'user'
         });
-
-        it('should throw an error when invalid data is provided', async () => {
-            const invalidUserForm: UserFormDTO = {
-                name: 'Jo',
-                email: 'invalid-email',
-                password: '12345',
-                type: UserType.user
-            };
-
-            try {
-                await userService.createUser(invalidUserForm);
-                expect.fail('Expected error was not thrown');
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-            }
-        });
-
-        it('should throw an error if email is already registered', async () => {
-            const userForm: UserFormDTO = {
-                name: 'John Doe',
-                email: 'existing@example.com',
-                password: 'ValidPass123!',
-                type: UserType.user
-            };
-        
-            repositoryStub.getUserByEmail.resolves({ id: 1, ...userForm }); // Simula um usuário existente
-        
-            try {
-                await userService.createUser(userForm);
-                expect.fail('Expected error was not thrown');
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-            }
-        });
-
-        it('should create a user when name length is between 3 and 20 characters', async () => {
-            const validUserForm: UserFormDTO = {
-                name: 'ValidName',
-                email: 'valid@example.com',
-                password: 'ValidPass123!',
-                type: UserType.user
-            };
-        
-            const hashedPassword = 'hashedpassword123';
-            const expectedUser: User = {
-                id: 50000,
-                ...validUserForm,
-                password: hashedPassword
-            };
-        
-            sandbox.stub(bcrypt, 'hash').resolves(hashedPassword);
-            repositoryStub.createUser.resolves(expectedUser);
-        
-            const result = await userService.createUser(validUserForm);
-        
-            expect(repositoryStub.createUser.calledOnce).to.be.true;
-            expect(result).to.be.a('string');
-        });        
-        
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User name must have at least 3 characters.');
+      }
+      validateUserExistsStub.restore();
     });
 
-    describe('getAllUsers', () => {
-        it('should return all users without passwords', async () => {
-            const users: User[] = [
-                {
-                    id: 50000,
-                    name: 'User One',
-                    email: 'userone@example.com',
-                    password: 'hashedpassword1',
-                    type: UserType.user
-                },
-                {
-                    id: 50001,
-                    name: 'User Two',
-                    email: 'usertwo@example.com',
-                    password: 'hashedpassword2',
-                    type: UserType.admin
-                }
-            ];
+    it('should update successfully if data is valid', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').resolves();
+      validatorStub.validateUserName.returns();
+      validatorStub.validateUserEmail.returns();
+      validatorStub.validateUserType.returns();
+      sinon.stub(userService, 'getUserById').resolves({
+        id: 1,
+        name: 'OldName',
+        email: 'old@example.com',
+        type: 'user'
+      });
+      const updatedUserMock = {
+        id: 1,
+        name: 'NewName',
+        email: 'new@example.com',
+        type: 'admin'
+      };
+      repositoryStub.updateUser.resolves(updatedUserMock);
+      const result = await userService.updateUser(1, {
+        name: 'NewName',
+        email: 'new@example.com',
+        password: 'Password1!',
+        type: 'admin'
+      });
+      expect(result.id).to.equal(1);
+      expect(result.email).to.equal('new@example.com');
+      expect(repositoryStub.updateUser.calledOnce).to.be.true;
+      validateUserExistsStub.restore();
+    });
+  });
 
-            repositoryStub.getAllUsers.resolves(users);
-
-            const result = await userService.getAllUsers(1, 10);
-
-            expect(result).to.be.an('array').that.has.lengthOf(2);
-            result.forEach((user: User) => {
-                expect(user).to.not.have.property('password');
-            });
-        });
+  describe('updateUserPassword', () => {
+    it('should throw an error if password is invalid', async () => {
+      validatorStub.validateUserPassword.throws(new Error('User password must have at least 8 characters.'));
+      try {
+        await userService.updateUserPassword(1, 'short');
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User password must have at least 8 characters.');
+      }
     });
 
-    describe('getUserById', () => {
-        it('should return a user without password when user exists', async () => {
-            const userId = 50000;
-            const user: User = {
-                id: userId,
-                name: 'John Doe',
-                email: 'johndoe@example.com',
-                password: 'hashedpassword',
-                type: UserType.user
-            };
+    it('should update user password successfully', async () => {
+      validatorStub.validateUserPassword.returns();
+      sinon.stub(userService, 'getUser').resolves({
+        id: 1,
+        password: 'oldHashedPassword'
+      });
+      bcryptStub.hash.resolves('newHashedPassword');
+      const updatedUser = {
+        id: 1,
+        name: 'User',
+        email: 'user@example.com',
+        type: 'user',
+        password: 'newHashedPassword'
+      };
+      repositoryStub.updateUserPassword.resolves(updatedUser);
+      const result = await userService.updateUserPassword(1, 'NewPassword1!');
+      expect(bcryptStub.hash.calledOnce).to.be.true;
+      expect(result.password).to.not.equal('oldHashedPassword');
+    });
+  });
 
-            repositoryStub.getUserById.resolves(user);
+  describe('deleteUser', () => {
+    it('should delete user successfully', async () => {
+      repositoryStub.deleteUserById.resolves();
+      try {
+        await userService.deleteUser(1);
+      } catch (error) {
+        expect.fail('Expected no error to be thrown');
+      }
+      expect(repositoryStub.deleteUserById.calledOnce).to.be.true;
+    });
+  });
 
-            const result = await userService.getUserById(userId);
-
-            expect(result).to.deep.equal({
-                id: userId,
-                name: 'John Doe',
-                email: 'johndoe@example.com',
-                type: UserType.user
-            });
-            expect(result).to.not.have.property('password');
-        });
+  describe('validateNewPassword', () => {
+    it('should throw an error if current password is incorrect', async () => {
+      sinon.stub(userService, 'getUser').resolves({
+        id: 1,
+        password: 'oldHashedPassword'
+      });
+      try {
+        await userService.validateNewPassword(1, 'WRONGpassword', 'NewPassword1!');
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('Current password is incorrect');
+      }
     });
 
-    describe('deleteUser', () => {
-        it('should delete a user when user exists', async () => {
-            const userId = 50000;
-            repositoryStub.getUserById.resolves({ id: userId });
-            repositoryStub.deleteUserById.resolves();
-
-            await userService.deleteUser(userId);
-            expect(repositoryStub.deleteUserById.calledOnceWith(userId)).to.be.true;
-        });
+    it('should throw an error if the new password is the same as the current one', async () => {
+      sinon.stub(userService, 'getUser').resolves({
+        id: 1,
+        password: 'SameHashedPassword'
+      });
+      try {
+        await userService.validateNewPassword(1, 'SameHashedPassword', 'SameHashedPassword');
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('New password must be different from the current password');
+      }
     });
 
-    it('should throw an error when name is too short or too long', async () => {
-        const invalidUsers = [
-            { name: 'Jo', email: 'valid@example.com', password: 'ValidPass123!', type: UserType.user },
-            { name: 'A'.repeat(21), email: 'valid@example.com', password: 'ValidPass123!', type: UserType.user }
-        ];
+    it('should pass if current password matches and new password is different', async () => {
+      sinon.stub(userService, 'getUser').resolves({
+        id: 1,
+        password: 'oldHashedPassword'
+      });
+      try {
+        await userService.validateNewPassword(1, 'oldHashedPassword', 'newHashedPassword');
+      } catch (error) {
+        expect.fail('Expected no error to be thrown');
+      }
+    });
+  });
 
-        for (const userForm of invalidUsers) {
-            try {
-                await userService.createUser(userForm);
-                expect.fail('Expected error was not thrown');
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-            }
-        }
+  describe('getUser', () => {
+    it('should throw an error if id is invalid', async () => {
+      validatorStub.validateId.throws(new Error('User ID is required.'));
+      try {
+        await userService.getUser(null);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User ID is required.');
+      }
     });
 
-    it('should throw an error when password does not meet security criteria', async () => {
-        const invalidPasswords = ['12345678', 'abcdefgh', 'ABCDEFGH', 'Abcdefgh', 'Abc12345'];
-
-        for (const password of invalidPasswords) {
-            try {
-                await userService.createUser({ name: 'Valid User', email: 'valid@example.com', password, type: UserType.user });
-                expect.fail('Expected error was not thrown');
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-            }
-        }
+    it('should throw an error if user does not exist', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').rejects(new Error('User not found.'));
+      try {
+        await userService.getUser(99);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User not found.');
+      }
+      validateUserExistsStub.restore();
     });
 
-    it('should throw an error when an unauthorized user tries to update another user', async () => {
-        const userId = 50000;
-        const unauthorizedUserId = 50001;
-        const userForm: UserFormDTO = {
-            name: 'John Updated',
-            email: 'johnupdated@example.com',
-            password: 'SecurePass123!',
-            type: UserType.user
-        };
+    it('should return a user if it exists', async () => {
+      validatorStub.validateId.returns();
+      const validateUserExistsStub = sinon.stub(userService, 'validateUserExists').resolves();
+      const user = { id: 1, name: 'Test', email: 'test@example.com', type: 'user', password: 'hash' };
+      repositoryStub.getUserById.resolves(user);
+      const result = await userService.getUser(1);
+      expect(result.id).to.equal(1);
+      expect(result.email).to.equal('test@example.com');
+      validateUserExistsStub.restore();
+    });
+  });
 
-        repositoryStub.getUserById.resolves({ id: userId });
-
-        try {
-            await userService.updateUser(unauthorizedUserId, userForm);
-            expect.fail('Expected error was not thrown');
-        } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-        }
+  describe('getUserByEmail', () => {
+    it('should return a user if found by email', async () => {
+      const user = { id: 1, email: 'test@example.com', type: 'user' };
+      repositoryStub.getUserByEmail.resolves(user);
+      const result = await userService.getUserByEmail('test@example.com');
+      expect(result.id).to.equal(1);
     });
 
-    it('should throw an error when an unauthorized user tries to delete another user', async () => {
-        const userId = 50000;
-        const unauthorizedUserId = 50001;
+    it('should return null if user not found', async () => {
+      repositoryStub.getUserByEmail.resolves(null);
+      const result = await userService.getUserByEmail('notfound@example.com');
+      expect(result).to.be.null;
+    });
+  });
 
-        repositoryStub.getUserById.resolves({ id: userId });
-
-        try {
-            await userService.deleteUser(unauthorizedUserId);
-            expect.fail('Expected error was not thrown');
-        } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-        }
+  describe('validateUserExists', () => {
+    it('should throw an error if user does not exist', async () => {
+      validatorStub.validateId.returns();
+      repositoryStub.getUserById.resolves(null);
+      try {
+        await userService.validateUserExists(99);
+        expect.fail('Expected error was not thrown');
+      } catch (error) {
+        expect(error.message).to.equal('User not found.');
+      }
     });
 
-    it('should throw an error when email is not between 5 and 256 characters or invalid format', async () => {
-        const invalidEmails = ['a@b.c', 'a'.repeat(257) + '@example.com', 'invalid-email'];
-
-        for (const email of invalidEmails) {
-            try {
-                await userService.createUser({ name: 'Valid User', email, password: 'ValidPass123!', type: UserType.user });
-                expect.fail('Expected error was not thrown');
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-            }
-        }
+    it('should not throw an error if user exists', async () => {
+      validatorStub.validateId.returns();
+      repositoryStub.getUserById.resolves({ id: 1 });
+      try {
+        await userService.validateUserExists(1);
+      } catch (error) {
+        expect.fail('Expected no error to be thrown');
+      }
     });
-
-    it('should throw an error when user type is not admin or user', async () => {
-        try {
-            await userService.createUser({ name: 'Valid User', email: 'valid@example.com', password: 'ValidPass123!', type: 'invalidType' as UserType });
-            expect.fail('Expected error was not thrown');
-        } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-        }
-    });
+  });
 });

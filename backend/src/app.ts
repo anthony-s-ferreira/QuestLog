@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { setupSwagger } from '../config/swagger';
 import { userRoutes } from './routes/UserRoutes';
 import { rpgRoutes } from './routes/RpgRoutes';
@@ -12,9 +13,9 @@ import { adminRoutes } from './routes/AdminRoutes';
 const app: express.Application = express();
 const port = process.env.PORT || 3000;
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Limite de 100 requisições por IP
-  message: { error: 'Muitas requisições. Tente novamente mais tarde.' },
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests limit from IP
+  message: { error: 'Too many requests, try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -29,6 +30,7 @@ app.use(
   })
 );
 app.use(limiter);
+app.use(helmet());
 
 //API routes
 app.get('/', (req: Request, res: Response) => {

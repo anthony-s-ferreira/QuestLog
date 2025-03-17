@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { setupSwagger } from '../config/swagger';
 import { userRoutes } from './routes/UserRoutes';
 import { rpgRoutes } from './routes/RpgRoutes';
@@ -10,10 +11,16 @@ import { adminRoutes } from './routes/AdminRoutes';
 
 const app: express.Application = express();
 const port = process.env.PORT || 3000;
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // Limite de 100 requisições por IP
+  message: { error: 'Muitas requisições. Tente novamente mais tarde.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 //Configurations
 app.use(express.json());
-
 app.use(
   cors({
     origin: ["https://editor.swagger.io/", "http://localhost:3000/", "https://app.swaggerhub.com"],
@@ -21,6 +28,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use(limiter);
 
 //API routes
 app.get('/', (req: Request, res: Response) => {

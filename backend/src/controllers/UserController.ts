@@ -136,3 +136,21 @@ export const deleteUser = async (req: Request, res: Response) => {
         console.log({ message: "Error deleting user", error: error.message });
     }
 };
+
+/**
+ * Retrieves the user's profile.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const getProfile = async (req: Request, res: Response) => {
+    const { userId } = req.body;
+    try {
+        validateUserId(Number(userId), res);
+        const user = await userService.getUserById(Number(userId));
+        res.status(200).json(user);
+    } catch (error: Error | any) {
+        console.log({ message: "Error getting profile", error: error.message });
+    }
+};
+

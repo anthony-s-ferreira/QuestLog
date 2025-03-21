@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser, login } from "../controllers/UserController";
+import { createUser, getAllUsers, getUserById, updateUser, updateUserPassword, deleteUser, login, getProfile } from "../controllers/UserController";
 import authMiddleware from "../middlewares/authMiddleware";
 import { AdminPermissionMiddleware, UserEditPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
@@ -14,7 +14,7 @@ const router = Router();
 
 /**
  * @swagger
- * /user/register:
+ * /register:
  *   post:
  *     summary: Create a new user
  *     description: Adds a new user to the system.
@@ -178,7 +178,7 @@ router.delete("/users/:id", authMiddleware, UserEditPermissionMiddleware, delete
 
 /**
  * @swagger
- * /user/login:
+ * /login:
  *   post:
  *     summary: Log in a user
  *     description: Log in a user to the system.
@@ -208,7 +208,22 @@ router.delete("/users/:id", authMiddleware, UserEditPermissionMiddleware, delete
  *       400:
  *         description: Invalid input data.
  */
-router.post("/user/login", login);
+router.post("/login", login);
 
+/**
+ * @swagger
+ * /user/me:
+ *   get:
+ *     summary: Get the current user's profile
+ *     description: Retrieves the profile of the currently authenticated user.
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully.
+ *       401:
+ *         description: Unauthorized.
+ */
+router.get("/user/me", authMiddleware, getProfile);
 
 export { router as userRoutes };

@@ -87,8 +87,7 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, email, type, password } = req.body;
-    const userForm: UserFormDTO = { name, email, password, type };
-
+    const userForm: UserFormDTO = { name, email, password: 'u', type };
     try {
         await validateUserId(Number(id), res);
         validateRequestBody(userForm, res);

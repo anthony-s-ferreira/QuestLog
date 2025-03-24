@@ -16,11 +16,16 @@ export const validateRequestBody = async (body: UserFormDTO, res: Response) => {
         throw new Error('User is required.');
     }
     try {
-        validateUserName(body.name);
-        validateUserEmail(body.email);
-        await validateUserEmailExistsRegister(body.email);
-        validateUserPassword(body.password);
-        validateUserType(body.type);
+        if (body.password == 'u') {
+            validateUserName(body.name);
+            validateUserEmail(body.email);
+            validateUserType(body.type);
+        }
+        else {
+            await validateUserEmailExistsRegister(body.email);
+            validateUserPassword(body.password);
+        }
+        
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

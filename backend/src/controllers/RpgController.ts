@@ -52,7 +52,7 @@ export const getAllRPGs = async (req: Request, res: Response) => {
  * @param res - Express response object
  */
 export const getRPGsByUserId = async (req: Request, res: Response) => {
-    const { userId } = req.body.userId;
+    const { userId } = req.body;
     try {
         const rpgs = await rpgService.getRPGByUserId(Number(userId));
         res.status(200).json(rpgs);

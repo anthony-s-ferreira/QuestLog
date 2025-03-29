@@ -9,9 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+import { postRpg } from "@/services/rpgService"
 
 export default function NewCampaignPage() {
   const router = useRouter()
+  const { toast } = useToast();
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -19,14 +22,34 @@ export default function NewCampaignPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const data = { name: title, description }
+      const rpg = await postRpg(data)
+      handleSuccess()
       router.push("/dashboard/campaigns")
-    }, 1500)
+    } catch (error) {
+      handleError(error)
+      
+    } finally{
+      setIsLoading(false)
+    }
   }
 
+  const handleError = (error: any) => {
+    toast({
+        title: "Error",
+        description: error.response?.data?.message,
+        variant: "destructive"
+      })
+  }
+
+  const handleSuccess = () => {
+    toast({
+        title: "Success",
+        description: `Campaign '${title}' created successfully`,
+        variant: "success"
+    })
+ }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">

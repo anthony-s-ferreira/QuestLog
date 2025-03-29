@@ -4,9 +4,11 @@ import { validateRequestBody, validateRPGId, validateRPGStatusPatch } from '../v
 import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
 import { EventService } from '../services/EventService';
 import { validatePageAndLimit } from '../validators/CommonValidator';
+import { CharacterService } from '../services/CharacterService';
 
 const rpgService = new RpgService();
 const eventService = new EventService();
+const characterService = new CharacterService();
 
 /**
  * Creates a new RPG.
@@ -82,6 +84,18 @@ export const getRPGEvents = async (req: Request, res: Response) => {
         return res.status(200).json(events);
     } catch (error: Error | any) {
         console.log('Error getting RPG events:', error);
+    }
+};
+
+export const getRPGCharacters = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        validateRPGId(Number(id), res);
+        const characters = await characterService.getRPGCharacters(Number(id));
+        res.status(200).json(characters);
+    } catch {
+        console.log('Error getting RPG characters:', error);
     }
 };
 

@@ -15,6 +15,11 @@ export async function getRPGEventsById(id: number, page: number, limit: number) 
   return response.data;
 }
 
+export async function getRPGCharactersById(id: number) {
+  const response = await api.get(`/rpg/${id}/characters`);
+  return response.data;
+}
+
 export async function postRpg(rpgData: { name: string; description: string }) {
   const response = await api.post('/rpg', rpgData);
   return response.data;

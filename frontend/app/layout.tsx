@@ -1,8 +1,12 @@
+
+
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { Mona_Sans as FontSans } from "next/font/google"
 import "./globals.css"
+import './globals.css'
+import { AuthProvider } from "@/context/AuthContext"
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -32,8 +36,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-
-import './globals.css'
-import { AuthProvider } from "@/context/AuthContext"

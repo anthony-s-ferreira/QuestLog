@@ -10,7 +10,7 @@ export async function getEventById(id: number) {
   return response.data;
 }
 
-export async function postEvent(eventData: { name: string; description: string; date: string; eventTypeId: number; characterId: number }) {
+export async function postEvent(eventData: { description: string; date: string; eventTypeId: number; characterId: number }) {
   const response = await api.post('/event', eventData);
   return response.data;
 }

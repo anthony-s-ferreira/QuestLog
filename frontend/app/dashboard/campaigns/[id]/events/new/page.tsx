@@ -9,61 +9,87 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { getEventTypes } from "@/services/eventTypeService"
+import { getRPGById, getRPGCharactersById } from "@/services/rpgService"
+import { postEvent } from "@/services/eventService"
+import { useToast } from "@/hooks/use-toast"
 
 export default function NewCampaignEventPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [character, setCharacter] = useState("")
   const [eventType, setEventType] = useState("")
   const [date, setDate] = useState<Date>()
   const [isLoading, setIsLoading] = useState(false)
   const [campaignData, setCampaignData] = useState<any>(null)
-
+  const { id } = useParams()
+  const [loading, setLoading] = useState(true)
+  const [characters, setCharacters] = useState<any>([])
+  const [eventTypes, setEventTypes] = useState<any>([])
+  const [loadingSubmit, setLoadingSubmit] = useState(false)
+  const { toast } = useToast();
   useEffect(() => {
-    // This would normally fetch campaign data from the API
-    // For now, we'll use mock data
-    setCampaignData({
-      id: Number(params.id),
-      title: "The Forgotten Realms",
-    })
-  }, [params.id])
+    setLoading(true);
+    fetchData();
+  }, [id])
 
-  // This would normally fetch data from the API
-  const characters = [
-    { id: "1", name: "Thorne Ironheart", campaignId: "1" },
-    { id: "2", name: "Elara Moonwhisper", campaignId: "1" },
-    { id: "3", name: "Grimm Stonebreaker", campaignId: "1" },
-    { id: "4", name: "Seraphina Lightbringer", campaignId: "1" },
-    { id: "5", name: "Zephyr Shadowstep", campaignId: "1" },
-  ]
+  const fetchData = async () => {
+    const campaignData = await getRPGById(Number(id));
+    setCampaignData(campaignData);
+    const charactersData = await getRPGCharactersById(Number(id));
+    setCharacters(charactersData);
+    const eventTypesData = await getEventTypes();
+    setEventTypes(eventTypesData);
+    setLoading(false);
+  };
 
-  const eventTypes = [
-    { id: "1", name: "Combat" },
-    { id: "2", name: "Roleplay" },
-    { id: "3", name: "Discovery" },
-    { id: "4", name: "Skill Challenge" },
-    { id: "5", name: "Adventure" },
-    { id: "6", name: "Other" },
-  ]
-
-  const filteredCharacters = characters.filter((c) => c.campaignId === params.id)
+  const filteredCharacters = characters;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setLoadingSubmit(true);
+    try {
+      const eventData = {
+        description: description,
+        characterId: Number(character),
+        eventTypeId: Number(eventType),
+        date: new Date().toDateString(),
+      };
+      const response = await postEvent(eventData);
+      handleSuccess();
+      router.push("/dashboard/campaigns/" + id);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      handleError(error);
+    } finally {
+      setLoadingSubmit(false);
+    }
+  }
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push(`/dashboard/campaigns/${params.id}`)
-    }, 1500)
+  const handleSuccess = () => {
+    toast({
+      title: "Success",
+      description: `Event created successfully.`,
+      variant: "success"
+  })
+  }
+
+  const handleError = (error) => {
+    toast({
+      title: "Error",
+      description: error.response?.data?.message,
+      variant: "destructive"
+    })
+  }
+
+  const getLoading = () => {
+    return <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-50"></div>
   }
 
   return (
@@ -76,19 +102,10 @@ export default function NewCampaignEventPage({ params }: { params: { id: string 
         <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle>Event Details</CardTitle>
-            <CardDescription>Record a memorable moment from your campaign: {campaignData?.title}</CardDescription>
+            <CardDescription>Record a memorable moment from your campaign: {loading ? getLoading() : campaignData?.name}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Event Title</Label>
-              <Input
-                id="title"
-                placeholder="Battle with the Dragon"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="description">Event Description</Label>
               <Textarea
@@ -103,13 +120,19 @@ export default function NewCampaignEventPage({ params }: { params: { id: string 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="character">Character</Label>
-                <Select value={character} onValueChange={setCharacter} required>
+                <Select
+                  value={character}
+                  onValueChange={(val) => {
+                    setCharacter(val);
+                  }}
+                  required
+                >
                   <SelectTrigger id="character">
                     <SelectValue placeholder="Select a character" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredCharacters.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
+                      <SelectItem key={c.id} value={c.id.toString()}>
                         {c.name}
                       </SelectItem>
                     ))}
@@ -118,13 +141,15 @@ export default function NewCampaignEventPage({ params }: { params: { id: string 
               </div>
               <div className="space-y-2">
                 <Label htmlFor="eventType">Event Type</Label>
-                <Select value={eventType} onValueChange={setEventType} required>
+                <Select value={eventType || ""} onValueChange={(value) => {
+                  setEventType(value);
+                }} required>
                   <SelectTrigger id="eventType">
                     <SelectValue placeholder="Select an event type" />
                   </SelectTrigger>
                   <SelectContent>
                     {eventTypes.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
+                      <SelectItem key={t.id} value={String(t.id)}>
                         {t.name}
                       </SelectItem>
                     ))}
@@ -132,30 +157,13 @@ export default function NewCampaignEventPage({ params }: { params: { id: string 
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Select a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Event"}
+            <Button type="submit" disabled={loadingSubmit}>
+              {loadingSubmit ? "Creating..." : "Create Event"}
             </Button>
           </CardFooter>
         </form>

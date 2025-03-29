@@ -1,13 +1,9 @@
-import { api, setAuthToken } from "@/services/api";
+import { api } from "@/services/api";
+import Cookies from 'js-cookie';
 
 export const authService = {
   async login(email: string, password: string) {
     const response = await api.post("/login", { email, password });
-    const { token } = response.data;
-
-    localStorage.setItem('token', token);
-    setAuthToken(token); 
-
     return response.data;
   },
 
@@ -18,9 +14,6 @@ export const authService = {
   async register(name: string, email: string, password: string) {
     const response = await api.post("/register", { name, email, password });
     const { token } = response.data;
-
-    localStorage.setItem('token', token);
-    setAuthToken(token); 
 
     return response.data;
   },

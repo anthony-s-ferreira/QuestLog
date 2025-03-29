@@ -13,8 +13,8 @@ const eventService = new EventService();
  * @param res - Express response object
  */ 
 export const createEvent = async (req: Request, res: Response) => {
-    const { description, characterId, typeId } = req.body;
-    const eventForm: EventFormDTO = { description, characterId, typeId };
+    const { description, characterId, eventTypeId } = req.body;
+    const eventForm: EventFormDTO = { description, characterId, typeId: eventTypeId };
     try {
         await validateRequestBody(eventForm, res);
         const rpg = await eventService.createEvent(eventForm);

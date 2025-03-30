@@ -147,6 +147,21 @@ router.get('/rpg/:id/events', authMiddleware, RPGPermissionMiddleware, getRPGEve
  */
 router.get('/rpg/:id/characters', authMiddleware, RPGPermissionMiddleware, getRPGCharacters);
 
+
+/**
+ * @swagger
+ * /rpgs/select:
+ *   get:
+ *     summary: Get all RPGs for selection
+ *     description: Retrieves a list of all RPGs for selection.
+ *     tags:
+ *       - RPGs
+ *     responses:
+ *       200:
+ *         description: List of RPGs retrieved successfully.
+ */
+router.get('/rpgs/select', authMiddleware, RPGPermissionMiddleware, getRPGsByUserId);
+
 /**
  * @swagger
  * /rpg/{id}:

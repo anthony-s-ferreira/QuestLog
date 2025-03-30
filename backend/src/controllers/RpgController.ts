@@ -118,6 +118,23 @@ export const getRPGById = async (req: Request, res: Response) => {
 };
 
 /**
+ * Retrieves all RPGs with their IDs and names.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * 
+ * @returns A list of all RPGs with their IDs and names.
+ */
+export const getRPGSelect = async (req: Request, res: Response) => {
+    try {
+        const rpgs = await rpgService.getRPGSelect();
+        res.status(200).json(rpgs);
+    } catch (error: Error | any) {
+        console.log('Error getting RPG select:', error);
+    }
+};
+
+/**
  * Updates an RPG by ID.
  * 
  * @param req - Express request object

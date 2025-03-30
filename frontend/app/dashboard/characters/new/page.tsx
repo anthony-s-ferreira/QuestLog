@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,31 +10,66 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
+import { getAllRPGs } from "@/services/adminService"
+import { getRPGSelect } from "@/services/rpgService"
+import { postCharacter } from "@/services/characterService"
+import { useToast } from "@/hooks/use-toast"
 
 export default function NewCharacterPage() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [campaign, setCampaign] = useState("")
+  const [campaigns, setCampaigns] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast();
 
-  // This would normally fetch data from the API
-  const campaigns = [
-    { id: "1", title: "The Forgotten Realms" },
-    { id: "2", title: "Curse of Strahd" },
-    { id: "3", title: "Cyberpunk Red" },
-    { id: "4", title: "Star Wars: Edge of the Empire" },
-  ]
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    try {
+      setIsLoading(true);
+      const response = await postCharacter({name: name, rpgId: Number(campaign)});
+      handleSuccess();
+      setIsLoading(false);
+      router.push("/dashboard/characters/" + response.id)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/dashboard/characters")
-    }, 1500)
+    } catch (error) {
+      handleError(error);
+      console.error("Error creating character:", error)
+    }
+  }
+
+  const handleError = (error: any) => {
+    toast({
+        title: "Error",
+        description: error.response?.data?.message,
+        variant: "destructive"
+      })
+  }
+
+  const handleSuccess = () => {
+    toast({
+        title: "Success",
+        description: `Character '${name}' created successfully`,
+        variant: "success"
+    })
+ }
+
+  const fetchData = async () => {
+    const response = await getRPGSelect();
+    setCampaigns(response);
+    setLoading(false);
+  }
+
+
+  const getLoading = () => {
+    return <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-50"></div>
   }
 
   return (
@@ -60,7 +95,7 @@ export default function NewCharacterPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="description">Character Description</Label>
               <Textarea
                 id="description"
@@ -70,21 +105,25 @@ export default function NewCharacterPage() {
                 rows={5}
                 required
               />
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label htmlFor="campaign">Campaign</Label>
-              <Select value={campaign} onValueChange={setCampaign} required>
-                <SelectTrigger id="campaign">
+              {loading ? getLoading() : 
+              <Select value={campaign || ""} onValueChange={(value) => {
+                setCampaign(value);
+              }} required>
+                <SelectTrigger id="eventType">
                   <SelectValue placeholder="Select a campaign" />
                 </SelectTrigger>
                 <SelectContent>
-                  {campaigns.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.title}
+                  {campaigns.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              }
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">

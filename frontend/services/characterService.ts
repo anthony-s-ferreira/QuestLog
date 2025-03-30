@@ -10,12 +10,12 @@ export async function getCharacterById(id: number) {
   return response.data;
 }
 
-export async function postCharacter(characterData: { name: string; description: string; rpgId: number }) {
+export async function postCharacter(characterData: { name: string; rpgId: number }) {
   const response = await api.post('/character', characterData);
   return response.data;
 }
 
-export async function editCharacter(id: number, characterData: { name: string; description: string; rpgId: number }) {
+export async function editCharacter(id: number, characterData: { name: string; rpgId: number }) {
   const response = await api.put(`/character/${id}`, characterData);
   return response.data;
 }

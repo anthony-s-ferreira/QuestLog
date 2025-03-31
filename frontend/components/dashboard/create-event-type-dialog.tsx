@@ -15,6 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { postEventType } from "@/services/eventTypeService"
+import { useToast } from "@/hooks/use-toast"
 
 interface CreateEventTypeDialogProps {
   open: boolean
@@ -25,22 +27,42 @@ export function CreateEventTypeDialog({ open, onOpenChange }: CreateEventTypeDia
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // This would normally call an API to create the event type
-    console.log("Creating event type:", { name, description })
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const eventTypeData = {name: name, description: description}
+      const response = await postEventType(eventTypeData);
+      handleSubmitSuccess();
       setName("")
       setDescription("")
       onOpenChange(false)
-    }, 1000)
+    } catch (error) {
+      console.log('Error:' + error);
+      handleSubmitError(error);
+    } finally {
+      setIsLoading(false);
+    }
+
   }
+
+  const handleSubmitError = (error: any) => {
+    toast({
+        title: "Error",
+        description: error.response?.data?.message,
+        variant: "destructive"
+      })
+  }
+
+  const handleSubmitSuccess = () => {
+    toast({
+        title: "Success",
+        description: "Event type created successfully",
+        variant: "success"
+    })
+ }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

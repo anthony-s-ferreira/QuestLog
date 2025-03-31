@@ -108,14 +108,14 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {isAdmin ? "Administrator" : user.type === "gamemaster" ? "Game Master" : "Player"}
+                {isAdmin() ? "Administrator" : "Player"}
               </span>
             </div>
             {/* <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">Member since January 2023</span>
             </div> */}
-            {isAdmin && (
+            {isAdmin() && (
               <Badge className="mt-2 bg-yellow-600 hover:bg-yellow-700">
                 <Shield className="mr-1 h-3 w-3" />
                 Admin
@@ -158,10 +158,6 @@ export default function ProfilePage() {
                   <div className="rounded-md border p-2">{email}</div>
                 )}
               </div>
-              <div className="space-y-2">
-                  <Label>User Type: {userType}</Label>
-                  
-                </div>
             </CardContent>
           </Card>
 

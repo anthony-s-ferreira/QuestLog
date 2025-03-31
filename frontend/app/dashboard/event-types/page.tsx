@@ -37,7 +37,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CreateEventTypeDialog } from "@/components/dashboard/create-event-type-dialog"
 import { EditEventTypeDialog } from "@/components/dashboard/edit-event-type-dialog"
-import { getEventTypes } from "@/services/eventTypeService"
+import { deleteEventType, getEventTypes } from "@/services/eventTypeService"
+import { useToast } from "@/hooks/use-toast"
 
 export default function EventTypesPage() {
   const { user, signIn, signOut, isAdmin } = useAuth();
@@ -52,6 +53,8 @@ export default function EventTypesPage() {
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [eventTypes, setEventTypes] = useState(null)
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast()
+
   useEffect(() => {
     // Check if user is admin
     setUserIsAdmin(isAdmin())
@@ -67,7 +70,7 @@ export default function EventTypesPage() {
       }
     };
       fetchData();
-  }, [])
+  }, [eventTypeToDelete, isEditDialogOpen, isCreateDialogOpen])
 
   // Filter event types based on search query
   const filteredEventTypes = searchQuery
@@ -93,12 +96,34 @@ export default function EventTypesPage() {
     setIsDeleteDialogOpen(true)
   }
 
-  const confirmDelete = () => {
-    // This would normally call an API to delete the event type
-    console.log(`Deleting event type: ${eventTypeToDelete?.name}`)
-    setIsDeleteDialogOpen(false)
-    setEventTypeToDelete(null)
+  const confirmDelete = async () => {
+    try {
+      const response = await deleteEventType(Number(eventTypeToDelete.id));
+      handleSuccess('deleted');
+      setEventTypeToDelete(null);
+    } catch (error) {
+      console.log('Error: ' + error)
+      handleSubmitError(error)
+    } finally {
+      setIsDeleteDialogOpen(false)
+    }
   }
+
+  const handleSubmitError = (error: any) => {
+    toast({
+        title: "Error",
+        description: error.response?.data?.message,
+        variant: "destructive"
+      })
+  }
+
+  const handleSuccess = (type: string) => {
+    toast({
+        title: "Success",
+        description: `Event type ${type} successfully`,
+        variant: "success"
+    })
+ }
 
   return (
     <div className="flex flex-col gap-6">

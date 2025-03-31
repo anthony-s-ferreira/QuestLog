@@ -118,6 +118,9 @@ export class RpgService {
         const rpg = await repository.getRpgById(id);
         if (rpg) {
             rpg.active = active;
+            delete rpg.master;
+            delete rpg.id;
+            delete rpg.masterid;
             const updatedRpg = await repository.updateRPGStatus(id, rpg);
             return this.convertRPG(updatedRpg);
         }

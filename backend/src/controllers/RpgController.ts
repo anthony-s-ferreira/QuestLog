@@ -163,7 +163,6 @@ export const updateRPG = async (req: Request, res: Response) => {
 export const updateRPGStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
-
     try {
         await validateRPGId(Number(id), res);
         validateRPGStatusPatch(status, res);

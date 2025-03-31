@@ -9,11 +9,22 @@ import Link from "next/link"
 import { CampaignCharacters } from "@/components/dashboard/campaign-characters"
 import { CampaignEvents } from "@/components/dashboard/campaign-events"
 import { useEffect, useState } from "react"
-import { getRPGById, getRPGCharactersById, getRPGEventsById } from "@/services/rpgService"
+import { changeRpgStatus, getRPGById, getRPGCharactersById, getRPGEventsById } from "@/services/rpgService"
 import { useParams } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function CampaignPage({ params }: { params: { id: string } }) {
-  
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState(null)
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState(null)
@@ -21,7 +32,7 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
   const [characters, setCharacters] = useState(null)
   const { id } = useParams()
   const campaignId = parseInt(id as string)
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   useEffect(() => {
       try{
         setLoading(true)
@@ -35,6 +46,7 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
   const fetchData = async (id: number) => {
     const rpg = await getRPGById(id)
     setCampaign(rpg)
+    console.log(rpg)
     const events = await getRPGEventsById(id, 1, 10)
     setEvents(events)
     const characters = await getRPGCharactersById(id)
@@ -47,16 +59,45 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
     setLoading(false)
   }
 
+  const handleChangeStatus = async () => {
+    try {
+      const response = await changeRpgStatus(id, !campaign.active)
+      setCampaign(response)
+      setIsDialogOpen(false)
+    } catch (error) {
+      console.log(error.response?.data?.message)
+    }
+    
+
+  };
+
   const getLoading = () => {
     return <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-50"></div>
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {loading ? <></> : <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will change the status of your campaign to {campaign.active ? 'hiatus' : 'active'}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleChangeStatus} className="bg-destructive text-destructive-foreground">
+              Change
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">{loading ? getLoading() : campaign.name}</h1>
         <div className="flex items-center gap-2">
           {loading ? getLoading() : <Badge variant={campaign.active ? "default" : "secondary"}>{campaign.active ? 'Active' : 'Hiatus'}</Badge>}
+            {!loading && campaign.master.id === user.id ? <Button variant="outline"  onClick={() => setIsDialogOpen(true)} disabled={loading}>Change status</Button> : <></>}
           <Link href={`/dashboard/campaigns/${campaignId}/edit`}>
             <Button variant="outline" disabled={loading}>Edit Campaign</Button>
           </Link>
@@ -174,7 +215,10 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
           )}
         
       </Tabs>
+        
+      
     </div>
+    
   )
 }
 

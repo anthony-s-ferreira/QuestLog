@@ -36,7 +36,7 @@ export async function editRpg(id: number, rpgData: { name: string; description: 
 }
 
 export async function changeRpgStatus(id: number, status: boolean) {
-  const response = await api.patch(`/rpg/${id}`, status);
+  const response = await api.patch(`/rpg/${id}`, {status: status});
   return response.data;
 }
 

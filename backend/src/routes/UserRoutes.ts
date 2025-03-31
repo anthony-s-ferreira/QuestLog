@@ -50,7 +50,7 @@ const router = Router();
  *       400:
  *         description: Invalid input data.
  */
-router.post("/user/register", createUser);
+router.post("/register", createUser);
 
 /**
  * @swagger

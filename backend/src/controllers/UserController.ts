@@ -5,6 +5,7 @@ import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 import { validateUserLoginBody } from '../validators/AuthValidator';
 import { AuthService } from '../services/AuthService';
 import { validatePageAndLimit } from '../validators/CommonValidator';
+import { UserType } from '../domain/enums/UserType';
 
 const userService = new UserService();
 const authService = new AuthService();
@@ -16,7 +17,7 @@ const authService = new AuthService();
  */
 export const createUser = async (req: Request, res: Response) => {
     const { name, email, password, type } = req.body;
-    const userForm: UserFormDTO = { name, email, password, type };
+    const userForm: UserFormDTO = { name, email, password, type: UserType.user };
     try {
         validateRequestBody(userForm, res);
         const user = await userService.createUser(userForm);

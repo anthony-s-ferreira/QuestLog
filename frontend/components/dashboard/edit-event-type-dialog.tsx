@@ -15,6 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { editEventType } from "@/services/eventTypeService"
+import { useToast } from "@/hooks/use-toast"
 
 interface EventType {
   id: string
@@ -33,6 +35,7 @@ export function EditEventTypeDialog({ eventType, open, onOpenChange }: EditEvent
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast();
 
   useEffect(() => {
     if (eventType) {
@@ -44,16 +47,36 @@ export function EditEventTypeDialog({ eventType, open, onOpenChange }: EditEvent
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // This would normally call an API to update the event type
-    console.log("Updating event type:", { id: eventType?.id, name, description })
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const eventTypeData = {name: name, description: description}
+      const response = await editEventType(Number(eventType.id), eventTypeData);
+      handleSuccess();
+    } catch(error) {
+      console.error('Error: ' + error);
+      handleSubmitError(error);
+    }finally {
       onOpenChange(false)
-    }, 1000)
+      setIsLoading(false)
+    }
+    
+    
   }
+
+  const handleSubmitError = (error: any) => {
+    toast({
+        title: "Error",
+        description: error.response?.data?.message,
+        variant: "destructive"
+      })
+  }
+
+  const handleSuccess = () => {
+    toast({
+        title: "Success",
+        description: `Event type edited successfully`,
+        variant: "success"
+    })
+ }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -82,3 +82,16 @@ export const deleteUserById = (id: number) => {
 export const getUserByEmail = (email: string) => {
     return db.user.findUnique({ where: { email } });
 }
+
+/**
+ * Sets a user admin.
+ * @param userId - The ID of the user to be set as admin.
+ * @returns The updated user.
+ */
+export function setUserAdmin(userId: number) {
+    return db.user.update({
+        where: {id: userId},
+        data: {type: 'admin'}
+    })
+}
+

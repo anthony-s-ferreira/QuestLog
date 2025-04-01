@@ -99,6 +99,24 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
+
+/**
+ * Sets a user as an admin by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const setUserAdmin = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        await validateUserId(Number(id), res);
+        const updatedUser = await userService.setUserAdmin(Number(id));
+        res.status(200).json(updatedUser);
+    } catch (error: Error | any) {
+        console.log({ message: "Error setting user admin", error: error.message });
+    }
+}
+
 /**
  * Updates a user's password by ID.
  * 

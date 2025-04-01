@@ -4,7 +4,7 @@ import { getAllRPGs } from "../controllers/RpgController";
 import { AdminPermissionMiddleware } from "../middlewares/permissionMiddleware";
 import { getAllCharacters } from "../controllers/CharacterController";
 import { getEvents } from "../controllers/EventController";
-import { getAllUsers } from "../controllers/UserController";
+import { getAllUsers, setUserAdmin } from "../controllers/UserController";
 
 const router = Router();
 
@@ -127,4 +127,26 @@ router.get("/admin/events", authMiddleware, AdminPermissionMiddleware, getEvents
  */
 router.get("/admin/users", authMiddleware, AdminPermissionMiddleware, getAllUsers);
 
+/**
+ * @swagger
+ * /character/{id}:
+ *   get:
+ *     summary: Get a Character by ID
+ *     description: Retrieves details of a specific Character by its ID.
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The Character ID.
+ *     responses:
+ *       200:
+ *         description: User is now an admin.
+ *       404:
+ *         description: User not found.
+ */
+router.patch("/admin/setAdmin/:id", authMiddleware, AdminPermissionMiddleware, setUserAdmin);
 export { router as adminRoutes };

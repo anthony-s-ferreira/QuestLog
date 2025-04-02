@@ -27,15 +27,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { getAllRPGs } from "@/services/adminService"
 
 export default function AdminCampaignsPage() {
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(4)
+  const [totalPages, setTotalPages] = useState(100)
   const { user, signIn, signOut, isAdmin } = useAuth();
-
+  const [campaigns, setCampaigns] = useState([])
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
@@ -45,71 +46,15 @@ export default function AdminCampaignsPage() {
       // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
-  }, [router])
+    fetchData()
+
+  }, [router, currentPage])
 
   // This would normally fetch data from the API
-  const campaigns = [
-    {
-      id: 1,
-      title: "The Forgotten Realms",
-      description: "A high fantasy campaign set in the world of Faerûn.",
-      master: "John Smith",
-      masterId: 1,
-      status: "active",
-      createdAt: "2023-01-15",
-      players: 5,
-      characters: 5,
-      events: 48,
-    },
-    {
-      id: 2,
-      title: "Curse of Strahd",
-      description: "Gothic horror adventure in the mist-shrouded land of Barovia.",
-      master: "Michael Williams",
-      masterId: 3,
-      status: "active",
-      createdAt: "2023-03-22",
-      players: 4,
-      characters: 4,
-      events: 36,
-    },
-    {
-      id: 3,
-      title: "Cyberpunk Red",
-      description: "Dystopian future adventure in Night City.",
-      master: "Alex Rodriguez",
-      masterId: 5,
-      status: "hiatus",
-      createdAt: "2023-05-10",
-      players: 3,
-      characters: 3,
-      events: 24,
-    },
-    {
-      id: 4,
-      title: "Star Wars: Edge of the Empire",
-      description: "Adventure in the Outer Rim of the galaxy.",
-      master: "John Smith",
-      masterId: 1,
-      status: "active",
-      createdAt: "2023-02-18",
-      players: 6,
-      characters: 6,
-      events: 42,
-    },
-    {
-      id: 5,
-      title: "Shadows of Eldoria",
-      description: "A dark fantasy campaign in a world of ancient magic.",
-      master: "Michael Williams",
-      masterId: 3,
-      status: "active",
-      createdAt: "2023-04-05",
-      players: 4,
-      characters: 4,
-      events: 18,
-    },
-  ]
+  const fetchData = async () => {
+    const rpgs = await getAllRPGs(currentPage, 10);
+    setCampaigns(rpgs)
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -137,10 +82,10 @@ export default function AdminCampaignsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
           <p className="text-muted-foreground">Manage all campaigns in the system</p>
         </div>
-        <Button>
+        {/* <Button>
           <Plus className="mr-2 h-4 w-4" />
           Add Campaign
-        </Button>
+        </Button> */}
       </div>
 
       <Card>
@@ -149,7 +94,7 @@ export default function AdminCampaignsPage() {
           <CardDescription>View and manage all campaigns in the system</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center space-x-2 mb-6">
+          {/* <div className="flex w-full items-center space-x-2 mb-6">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -159,7 +104,7 @@ export default function AdminCampaignsPage() {
                 className="w-full pl-8"
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-md border">
             <Table>
@@ -168,7 +113,7 @@ export default function AdminCampaignsPage() {
                   <TableHead>Campaign</TableHead>
                   <TableHead>Game Master</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  {/* <TableHead>Created</TableHead> */}
                   <TableHead>Players</TableHead>
                   <TableHead>Events</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
@@ -181,7 +126,7 @@ export default function AdminCampaignsPage() {
                       <div className="flex items-center gap-3">
                         <Scroll className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">{campaign.title}</p>
+                          <p className="font-medium">{campaign.name}</p>
                           <p className="text-sm text-muted-foreground truncate max-w-[200px]">{campaign.description}</p>
                         </div>
                       </div>
@@ -189,47 +134,51 @@ export default function AdminCampaignsPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src="/placeholder.svg" alt={campaign.master} />
-                          <AvatarFallback>{campaign.master.charAt(0)}</AvatarFallback>
+                          <AvatarImage src="/placeholder.svg" alt={campaign.master.name} />
+                          <AvatarFallback>{campaign.master.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{campaign.master}</span>
+                        <span className="text-sm">{campaign.master.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={campaign.status === "active" ? "default" : "secondary"}>{campaign.status}</Badge>
+                      <Badge variant={campaign.active ? "default" : "secondary"}>{campaign.active ? 'Active' : 'Hiatus'}</Badge>
                     </TableCell>
-                    <TableCell>{new Date(campaign.createdAt).toLocaleDateString()}</TableCell>
+                    {/* <TableCell>{new Date(campaign.createdAt).toLocaleDateString()}</TableCell> */}
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{campaign.players}</span>
+                        <span>{campaign.players ?? '?'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                        <span>{campaign.events}</span>
+                        <span>{campaign.events ?? '?'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>View Campaign</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Campaign</DropdownMenuItem>
-                          <DropdownMenuItem>Manage Players</DropdownMenuItem>
-                          <DropdownMenuItem>
-                            {campaign.status === "active" ? "Set to Hiatus" : "Set to Active"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/dashboard/campaigns/${campaign.id}`)}
+                        >
+                          View Campaign
+                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem
+                          onClick={() => handleDeleteCampaign(campaign.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem> */}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

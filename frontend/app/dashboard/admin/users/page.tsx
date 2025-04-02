@@ -182,8 +182,8 @@ export default function AdminUsersPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{user.campaigns}</TableCell>
-                    <TableCell>{user.characters}</TableCell>
+                    <TableCell>{user.campaigns ?? '?'}</TableCell>
+                    <TableCell>{user.characters ?? '?'}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

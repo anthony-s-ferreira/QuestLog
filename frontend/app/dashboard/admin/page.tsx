@@ -8,11 +8,16 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation"
 import { ShieldAlert, Users, Scroll, User, CalendarDays, BookOpen, BarChart } from "lucide-react"
 import Link from "next/link"
+import { getAllCharacters, getAllEvents, getAllRPGs, getAllUsers } from "@/services/adminService"
 
 export default function AdminDashboardPage() {
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const { user, signIn, signOut, isAdmin } = useAuth();
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [totalCampaigns, setTotalCampaigns] = useState(0)
+  const [totalCharacters, setTotalCharacters] = useState(0)
+  const [totalEvents, setTotalEvents] = useState(0)
 
   useEffect(() => {
     // Check if user is admin
@@ -23,7 +28,21 @@ export default function AdminDashboardPage() {
       // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
+
+    fetchData();
   }, [router])
+
+  const fetchData = async () => {
+    const users = await getAllUsers(1, 1000000);
+    const rpgs = await getAllRPGs(1, 1000000);
+    const events = await getAllEvents(1, 1000000);
+    const chars = await getAllCharacters(1, 1000000);
+
+    setTotalCampaigns(rpgs.length);
+    setTotalUsers(users.length);
+    setTotalEvents(events.length);
+    setTotalCharacters(chars.length);
+  };
 
   if (!isAuthorized) {
     return (
@@ -55,8 +74,7 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">+12 from last month</p>
+            <div className="text-2xl font-bold">{totalUsers}</div>
           </CardContent>
         </Card>
         <Card>
@@ -65,8 +83,7 @@ export default function AdminDashboardPage() {
             <Scroll className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">56</div>
-            <p className="text-xs text-muted-foreground">+8 from last month</p>
+            <div className="text-2xl font-bold">{totalCampaigns}</div>
           </CardContent>
         </Card>
         <Card>
@@ -75,8 +92,7 @@ export default function AdminDashboardPage() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">243</div>
-            <p className="text-xs text-muted-foreground">+32 from last month</p>
+            <div className="text-2xl font-bold">{totalCharacters}</div>
           </CardContent>
         </Card>
         <Card>
@@ -85,14 +101,13 @@ export default function AdminDashboardPage() {
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,024</div>
-            <p className="text-xs text-muted-foreground">+156 from last month</p>
+            <div className="text-2xl font-bold">{totalEvents}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-2">
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-1">
+        {/* <Card className="col-span-2">
           <CardHeader>
             <CardTitle>Platform Activity</CardTitle>
             <CardDescription>User activity over the past 30 days</CardDescription>
@@ -101,7 +116,7 @@ export default function AdminDashboardPage() {
             <BarChart className="h-16 w-16 text-muted-foreground" />
             <span className="ml-4 text-muted-foreground">Activity chart will be displayed here</span>
           </CardContent>
-        </Card>
+        </Card> */}
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -132,170 +147,10 @@ export default function AdminDashboardPage() {
                 Manage Events
               </Button>
             </Link>
-            <Link href="/dashboard/admin/event-types">
-              <Button variant="outline" className="w-full justify-start">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Manage Event Types
-              </Button>
-            </Link>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="recent-users" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="recent-users">Recent Users</TabsTrigger>
-          <TabsTrigger value="recent-campaigns">Recent Campaigns</TabsTrigger>
-          <TabsTrigger value="recent-events">Recent Events</TabsTrigger>
-        </TabsList>
-        <TabsContent value="recent-users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recently Joined Users</CardTitle>
-              <CardDescription>New users who joined in the last 7 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Sarah Johnson</p>
-                      <p className="text-sm text-muted-foreground">sarah.johnson@example.com</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">2 days ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Michael Williams</p>
-                      <p className="text-sm text-muted-foreground">michael.williams@example.com</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">3 days ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Emily Davis</p>
-                      <p className="text-sm text-muted-foreground">emily.davis@example.com</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">5 days ago</p>
-                </div>
-              </div>
-              <div className="flex justify-end mt-4">
-                <Link href="/dashboard/admin/users">
-                  <Button variant="outline" size="sm">
-                    View All Users
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="recent-campaigns" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recently Created Campaigns</CardTitle>
-              <CardDescription>Campaigns created in the last 7 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <Scroll className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Shadows of Eldoria</p>
-                      <p className="text-sm text-muted-foreground">Created by John Smith</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">1 day ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <Scroll className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Cybernetic Uprising</p>
-                      <p className="text-sm text-muted-foreground">Created by Alex Rodriguez</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">3 days ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <Scroll className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Galactic Frontiers</p>
-                      <p className="text-sm text-muted-foreground">Created by Sarah Johnson</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">6 days ago</p>
-                </div>
-              </div>
-              <div className="flex justify-end mt-4">
-                <Link href="/dashboard/admin/campaigns">
-                  <Button variant="outline" size="sm">
-                    View All Campaigns
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="recent-events" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recently Logged Events</CardTitle>
-              <CardDescription>Events logged in the last 24 hours</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">The Great Heist</p>
-                      <p className="text-sm text-muted-foreground">Shadows of Eldoria • Combat</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">2 hours ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-4">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Meeting with the Oracle</p>
-                      <p className="text-sm text-muted-foreground">The Forgotten Realms • Roleplay</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">8 hours ago</p>
-                </div>
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Hacking the Mainframe</p>
-                      <p className="text-sm text-muted-foreground">Cyberpunk Red • Skill Challenge</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">12 hours ago</p>
-                </div>
-              </div>
-              <div className="flex justify-end mt-4">
-                <Link href="/dashboard/admin/events">
-                  <Button variant="outline" size="sm">
-                    View All Events
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }

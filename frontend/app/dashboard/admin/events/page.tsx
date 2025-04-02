@@ -27,6 +27,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import Link from "next/link"
+import { getAllEvents } from "@/services/adminService"
 
 export default function AdminEventsPage() {
   const router = useRouter()
@@ -35,7 +36,7 @@ export default function AdminEventsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(8)
-
+  const [events, setEvents] = useState([]);
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
@@ -45,85 +46,16 @@ export default function AdminEventsPage() {
       // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
-  }, [router])
+    fetchData();
+  }, [router, currentPage])
 
-  // This would normally fetch data from the API
-  const events = [
-    {
-      id: 1,
-      title: "Battle with the Dragon",
-      description: "The party faced off against the ancient red dragon Infernus.",
-      character: "Thorne Ironheart",
-      characterId: 1,
-      campaign: "The Forgotten Realms",
-      campaignId: 1,
-      date: "2023-12-15",
-      type: "Combat",
-      typeId: "1",
-      player: "John Smith",
-      playerId: 1,
-    },
-    {
-      id: 2,
-      title: "Meeting with the Count",
-      description: "The party was invited to dinner at Castle Ravenloft.",
-      character: "Lyra Moonshadow",
-      characterId: 2,
-      campaign: "Curse of Strahd",
-      campaignId: 2,
-      date: "2023-12-10",
-      type: "Roleplay",
-      typeId: "2",
-      player: "Sarah Johnson",
-      playerId: 2,
-    },
-    {
-      id: 3,
-      title: "Netrunning the Arasaka Database",
-      description: "Zephyr hacked into the corporate database to steal classified information.",
-      character: "Zephyr",
-      characterId: 3,
-      campaign: "Cyberpunk Red",
-      campaignId: 3,
-      date: "2023-11-28",
-      type: "Skill Challenge",
-      typeId: "4",
-      player: "Michael Williams",
-      playerId: 3,
-    },
-    {
-      id: 4,
-      title: "Escape from Mos Eisley",
-      description: "The crew narrowly escaped Imperial forces after a smuggling job went wrong.",
-      character: "Kira Voss",
-      characterId: 4,
-      campaign: "Star Wars: Edge of the Empire",
-      campaignId: 4,
-      date: "2023-12-05",
-      type: "Adventure",
-      typeId: "5",
-      player: "Emily Davis",
-      playerId: 4,
-    },
-    {
-      id: 5,
-      title: "Discovery of the Ancient Artifact",
-      description: "Elara discovered the Staff of Arcane Might in the ruins.",
-      character: "Elara Moonwhisper",
-      characterId: 5,
-      campaign: "The Forgotten Realms",
-      campaignId: 1,
-      date: "2023-12-15",
-      type: "Discovery",
-      typeId: "3",
-      player: "Alex Rodriguez",
-      playerId: 5,
-    },
-  ]
+  const fetchData = async () => {
+    const events = await getAllEvents(currentPage, 10);
+    setEvents(events);
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    // This would normally fetch data for the new page
   }
 
   if (!isAuthorized) {
@@ -147,10 +79,6 @@ export default function AdminEventsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Events</h1>
           <p className="text-muted-foreground">Manage all events in the system</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Event
-        </Button>
       </div>
 
       <Card>
@@ -159,7 +87,7 @@ export default function AdminEventsPage() {
           <CardDescription>View and manage all events in the system</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center space-x-2 mb-6">
+          {/* <div className="flex w-full items-center space-x-2 mb-6">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -169,7 +97,7 @@ export default function AdminEventsPage() {
                 className="w-full pl-8"
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-md border">
             <Table>
@@ -188,21 +116,21 @@ export default function AdminEventsPage() {
                   <TableRow key={event.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{event.title}</p>
-                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{event.description}</p>
+                        <p className="font-medium">{event.description}</p>
+                        {/* <p className="text-sm text-muted-foreground truncate max-w-[200px]">{event.description}</p> */}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge>{event.type}</Badge>
+                      <Badge>{event.type.name}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <Link
-                          href={`/dashboard/characters/${event.characterId}`}
+                          href={`/dashboard/characters/${event.character.id}`}
                           className="text-sm text-primary hover:underline"
                         >
-                          {event.character}
+                          {event.character.name}
                         </Link>
                       </div>
                     </TableCell>
@@ -210,17 +138,17 @@ export default function AdminEventsPage() {
                       <div className="flex items-center gap-2">
                         <Scroll className="h-4 w-4 text-muted-foreground" />
                         <Link
-                          href={`/dashboard/campaigns/${event.campaignId}`}
+                          href={`/dashboard/campaigns/${event.character.rpg.id}`}
                           className="text-sm text-primary hover:underline"
                         >
-                          {event.campaign}
+                          {event.character.rpg.name}
                         </Link>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{new Date(event.date).toLocaleDateString()}</span>
+                        <span className="text-sm">{new Date(event.createdAt).toLocaleDateString()}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -234,8 +162,8 @@ export default function AdminEventsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>View Event</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Event</DropdownMenuItem>
+                          {/* <DropdownMenuItem onClick={() => router.push(`/dashboard/events/${event.id}`)}>View Event</DropdownMenuItem> */}
+                          {/* <DropdownMenuItem>Edit Event</DropdownMenuItem> */}
                           <DropdownMenuItem className="text-destructive focus:text-destructive">
                             Delete Event
                           </DropdownMenuItem>

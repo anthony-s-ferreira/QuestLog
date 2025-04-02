@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, CalendarDays, Pencil, Save, Shield, User, Users, Scroll } from "lucide-react"
 import {
   AlertDialog,
@@ -27,6 +27,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import Link from "next/link"
+import { getUserById } from "@/services/adminService"
+import { updateUser } from "@/services/userService"
+import { useToast } from "@/hooks/use-toast"
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -37,112 +40,35 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
   const [isSaving, setIsSaving] = useState(false)
   const [isPromoteDialogOpen, setIsPromoteDialogOpen] = useState(false)
   const [user, setUser] = useState<UserType | null>(null)
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    type: "",
-    status: "",
-    bio: "",
-    isAdmin: false,
+    type: ""
   })
-
+  const { toast } = useToast();
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
     setIsAuthorized(adminCheck)
 
     if (!adminCheck) {
-      // Redirect to dashboard if not admin
       router.push("/dashboard")
       return
     }
+    getUserData(Number(id));
+  }, [id, router])
 
-    // Fetch user data - in a real app, this would be an API call
-    // For now, we'll simulate loading the data
-    setTimeout(() => {
-      const userData = getUserData(Number.parseInt(params.id))
-      setUser(userData)
-      setFormData({
-        name: userData.name,
-        email: userData.email,
-        type: userData.type,
-        status: userData.status,
-        bio:
-          userData.bio ||
-          "Tabletop RPG enthusiast and avid storyteller. I've been playing D&D for over 5 years and enjoy both being a player and game master.",
-        isAdmin: userData.isAdmin,
-      })
-      setIsLoading(false)
-    }, 500)
-  }, [params.id, router])
-
-  const getUserData = (id: number): UserType => {
-    // This would normally be an API call
-    // Mock data for demonstration
-    const users = [
-      {
-        id: 1,
-        name: "John Smith",
-        email: "john.smith@example.com",
-        type: "gamemaster",
-        isAdmin: true,
-        status: "active",
-        createdAt: "2023-01-15",
-        campaigns: 4,
-        characters: 2,
-        bio: "Experienced game master with a passion for creating immersive worlds and engaging storylines.",
-      },
-      {
-        id: 2,
-        name: "Sarah Johnson",
-        email: "sarah.johnson@example.com",
-        type: "player",
-        isAdmin: false,
-        status: "active",
-        createdAt: "2023-03-22",
-        campaigns: 0,
-        characters: 3,
-        bio: "New to tabletop RPGs but loving every minute of it. My favorite character is my elf ranger.",
-      },
-      {
-        id: 3,
-        name: "Michael Williams",
-        email: "michael.williams@example.com",
-        type: "gamemaster",
-        isAdmin: false,
-        status: "active",
-        createdAt: "2023-05-10",
-        campaigns: 2,
-        characters: 1,
-        bio: "Long-time DM who specializes in horror and mystery campaigns.",
-      },
-      {
-        id: 4,
-        name: "Emily Davis",
-        email: "emily.davis@example.com",
-        type: "player",
-        isAdmin: false,
-        status: "inactive",
-        createdAt: "2023-02-18",
-        campaigns: 0,
-        characters: 4,
-        bio: null,
-      },
-      {
-        id: 5,
-        name: "Alex Rodriguez",
-        email: "alex.rodriguez@example.com",
-        type: "gamemaster",
-        isAdmin: false,
-        status: "active",
-        createdAt: "2023-04-05",
-        campaigns: 1,
-        characters: 2,
-        bio: "Sci-fi enthusiast who loves running futuristic campaigns.",
-      },
-    ]
-
-    return users.find((user) => user.id === id) || users[0]
+  const getUserData = async (id: number) => {
+    const user = await getUserById(id);
+    setUser(user)
+    setFormData({
+      name: user.name,
+      email: user.email,
+      type: user.type,
+    })
+    setIsLoading(false)
+    return user
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -162,32 +88,40 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     setFormData((prev) => ({ ...prev, isAdmin: checked }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true)
-
-    // In a real app, this would be an API call
-    setTimeout(() => {
-      setUser({
-        ...user!,
-        name: formData.name,
-        email: formData.email,
-        type: formData.type,
-        status: formData.status,
-        bio: formData.bio,
-        isAdmin: formData.isAdmin,
-      })
-      setIsSaving(false)
+    try {
+      if (user) {
+        setUser({
+          ...user,
+          name: formData.name,
+          email: formData.email
+        })
+      }
+      const updatedUser = await updateUser(Number(id), {name: formData.name, email: formData.email, password: 'a', type: formData.type})
+      handleSuccess();
       setIsEditing(false)
-    }, 1000)
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const handlePromoteToAdmin = () => {
-    setIsPromoteDialogOpen(true)
+  const handleSuccess = () => {
+    toast({
+      title: "Success",
+      description: `User edited successfully.`,
+      variant: "success"
+    })
   }
 
-  const confirmPromoteToAdmin = () => {
-    setFormData((prev) => ({ ...prev, isAdmin: true }))
-    setIsPromoteDialogOpen(false)
+  const handleError = (error) => {
+    toast({
+      title: "Error",
+      description: error.response?.data?.message,
+      variant: "destructive"
+    })
   }
 
   if (!isAuthorized) {
@@ -275,13 +209,13 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {user?.isAdmin ? "Administrator" : user?.type === "gamemaster" ? "Game Master" : "Player"}
+                {user?.type === 'admin' ? "Administrator" :  "Player"}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">Member since {new Date(user?.createdAt).toLocaleDateString()}</span>
-            </div>
+            </div> */}
             {user?.isAdmin && (
               <Badge className="mt-2 bg-yellow-600 hover:bg-yellow-700">
                 <Shield className="mr-1 h-3 w-3" />
@@ -327,7 +261,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                   <div className="rounded-md border p-2">{user?.email}</div>
                 )}
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
                 {isEditing ? (
                   <Textarea
@@ -341,50 +275,16 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 ) : (
                   <div className="rounded-md border p-2 whitespace-pre-wrap">{user?.bio}</div>
                 )}
-              </div>
+              </div> */}
               {isEditing && (
                 <>
-                  <div className="space-y-2">
-                    <Label>User Type</Label>
-                    <RadioGroup value={formData.type} onValueChange={handleTypeChange} className="flex gap-4">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="player" id="player" />
-                        <Label htmlFor="player">Player</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="gamemaster" id="gamemaster" />
-                        <Label htmlFor="gamemaster">Game Master</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <RadioGroup value={formData.status} onValueChange={handleStatusChange} className="flex gap-4">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="active" />
-                        <Label htmlFor="active">Active</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="inactive" />
-                        <Label htmlFor="inactive">Inactive</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="admin-toggle">Administrator</Label>
-                      <Switch id="admin-toggle" checked={formData.isAdmin} onCheckedChange={handleAdminToggle} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Administrators have full access to all features and settings in the system.
-                    </p>
-                  </div>
+
                 </>
               )}
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="stats" className="space-y-4">
+          {/* <Tabs defaultValue="stats" className="space-y-4">
             <TabsList>
               <TabsTrigger value="stats">Stats</TabsTrigger>
               <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
@@ -539,29 +439,10 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 </CardContent>
               </Card>
             </TabsContent>
-          </Tabs>
+          </Tabs> */}
         </div>
       </div>
 
-      {/* Promote to Admin Confirmation Dialog */}
-      <AlertDialog open={isPromoteDialogOpen} onOpenChange={setIsPromoteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Promote to Administrator</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to promote {user?.name} to an administrator? This will give them full access to all
-              administrative functions in the system.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmPromoteToAdmin} className="bg-yellow-600 hover:bg-yellow-700">
-              <Shield className="mr-2 h-4 w-4" />
-              Promote to Admin
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

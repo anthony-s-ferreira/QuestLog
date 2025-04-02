@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,25 +10,59 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Scroll } from "lucide-react"
+import { signupUser } from "@/services/userService"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function SignupPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [userType, setUserType] = useState("player")
   const [isLoading, setIsLoading] = useState(false)
+  const {toast} = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (password !== confirmPassword) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [confirmPassword, password])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      window.location.href = "/dashboard"
-    }, 1500)
+    try {
+      const userData = {name: name, email: email, password: password}
+      const response = await signupUser(userData);
+      handleSuccess();
+      router.push('/login')
+    } catch(error) {
+      console.log('Error:' + error);
+      handleError(error);
+    }finally {
+      setIsLoading(false);
+    }
+    
   }
+
+  const handleSuccess = () => {
+    toast({
+      title: 'Success',
+      description: `Now, sign in!`,
+      variant: 'success'
+    })
+  };
+
+  const handleError = (error) => {
+    toast({
+      title: "Error",
+      description: error.response?.data?.message,
+      variant: "destructive"
+    })
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -78,19 +112,6 @@ export default function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label>I am a:</Label>
-              <RadioGroup value={userType} onValueChange={setUserType} className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="player" id="player" />
-                  <Label htmlFor="player">Player</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="gamemaster" id="gamemaster" />
-                  <Label htmlFor="gamemaster">Game Master</Label>
-                </div>
-              </RadioGroup>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

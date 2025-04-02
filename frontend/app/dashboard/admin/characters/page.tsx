@@ -27,6 +27,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import Link from "next/link"
+import { getAllCharacters } from "@/services/adminService"
 
 export default function AdminCharactersPage() {
   const router = useRouter()
@@ -35,85 +36,26 @@ export default function AdminCharactersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(5)
-
+  const [characters, setCharacters] = useState([])
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
     setIsAuthorized(adminCheck)
 
     if (!adminCheck) {
-      // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
-  }, [router])
 
-  // This would normally fetch data from the API
-  const characters = [
-    {
-      id: 1,
-      name: "Thorne Ironheart",
-      description: "Dwarf Paladin, Level 8",
-      player: "John Smith",
-      playerId: 1,
-      campaign: "The Forgotten Realms",
-      campaignId: 1,
-      createdAt: "2023-01-20",
-      events: 12,
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 2,
-      name: "Lyra Moonshadow",
-      description: "Elf Ranger, Level 6",
-      player: "Sarah Johnson",
-      playerId: 2,
-      campaign: "Curse of Strahd",
-      campaignId: 2,
-      createdAt: "2023-02-15",
-      events: 8,
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 3,
-      name: "Zephyr",
-      description: "Android Netrunner",
-      player: "Michael Williams",
-      playerId: 3,
-      campaign: "Cyberpunk Red",
-      campaignId: 3,
-      createdAt: "2023-03-10",
-      events: 6,
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 4,
-      name: "Kira Voss",
-      description: "Human Smuggler",
-      player: "Emily Davis",
-      playerId: 4,
-      campaign: "Star Wars: Edge of the Empire",
-      campaignId: 4,
-      createdAt: "2023-04-05",
-      events: 9,
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 5,
-      name: "Grimm Stonebreaker",
-      description: "Dwarf Fighter, Level 7",
-      player: "Alex Rodriguez",
-      playerId: 5,
-      campaign: "The Forgotten Realms",
-      campaignId: 1,
-      createdAt: "2023-05-12",
-      events: 7,
-      avatar: "/placeholder.svg",
-    },
-  ]
+    fetchData();
+  }, [router, currentPage])
+
+  const fetchData = async () => {
+    const characters = await getAllCharacters(currentPage, 10);
+    setCharacters(characters);
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    // This would normally fetch data for the new page
   }
 
   if (!isAuthorized) {
@@ -149,7 +91,7 @@ export default function AdminCharactersPage() {
           <CardDescription>View and manage all characters in the system</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center space-x-2 mb-6">
+          {/* <div className="flex w-full items-center space-x-2 mb-6">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -159,7 +101,7 @@ export default function AdminCharactersPage() {
                 className="w-full pl-8"
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-md border">
             <Table>
@@ -168,7 +110,7 @@ export default function AdminCharactersPage() {
                   <TableHead>Character</TableHead>
                   <TableHead>Player</TableHead>
                   <TableHead>Campaign</TableHead>
-                  <TableHead>Created</TableHead>
+                  {/* <TableHead>Created</TableHead> */}
                   <TableHead>Events</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
@@ -191,7 +133,7 @@ export default function AdminCharactersPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{character.player}</span>
+                        <span className="text-sm">{character.owner.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -201,12 +143,12 @@ export default function AdminCharactersPage() {
                           href={`/dashboard/campaigns/${character.campaignId}`}
                           className="text-sm text-primary hover:underline"
                         >
-                          {character.campaign}
+                          {character.rpg.name}
                         </Link>
                       </div>
                     </TableCell>
-                    <TableCell>{new Date(character.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{character.events}</TableCell>
+                    {/* <TableCell>{new Date(character.createdAt).toLocaleDateString()}</TableCell> */}
+                    <TableCell>{character.events ?? '?'}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -218,12 +160,12 @@ export default function AdminCharactersPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>View Character</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Character</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => router.push(`/dashboard/characters/${character.id}`)}>View Character</DropdownMenuItem>
+                          {/* <DropdownMenuItem>Edit Character</DropdownMenuItem>
                           <DropdownMenuItem>View Events</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive focus:text-destructive">
                             Delete Character
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

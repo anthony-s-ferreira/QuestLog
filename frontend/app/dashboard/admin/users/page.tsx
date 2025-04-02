@@ -38,6 +38,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import Link from "next/link"
+import { getAllUsers, setUserAdmin } from "@/services/adminService"
+import { useToast } from "@/hooks/use-toast"
 
 export default function AdminUsersPage() {
   const router = useRouter()
@@ -45,65 +47,12 @@ export default function AdminUsersPage() {
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(5)
+  const [totalPages, setTotalPages] = useState(100)
   const [isPromoteDialogOpen, setIsPromoteDialogOpen] = useState(false)
   const [userToPromote, setUserToPromote] = useState<User | null>(null)
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@example.com",
-      type: "gamemaster",
-      isAdmin: true,
-      status: "active",
-      createdAt: "2023-01-15",
-      campaigns: 4,
-      characters: 2,
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      type: "player",
-      isAdmin: false,
-      status: "active",
-      createdAt: "2023-03-22",
-      campaigns: 0,
-      characters: 3,
-    },
-    {
-      id: 3,
-      name: "Michael Williams",
-      email: "michael.williams@example.com",
-      type: "gamemaster",
-      isAdmin: false,
-      status: "active",
-      createdAt: "2023-05-10",
-      campaigns: 2,
-      characters: 1,
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      email: "emily.davis@example.com",
-      type: "player",
-      isAdmin: false,
-      status: "inactive",
-      createdAt: "2023-02-18",
-      campaigns: 0,
-      characters: 4,
-    },
-    {
-      id: 5,
-      name: "Alex Rodriguez",
-      email: "alex.rodriguez@example.com",
-      type: "gamemaster",
-      isAdmin: false,
-      status: "active",
-      createdAt: "2023-04-05",
-      campaigns: 1,
-      characters: 2,
-    },
+    
   ])
 
   useEffect(() => {
@@ -115,11 +64,18 @@ export default function AdminUsersPage() {
       // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
-  }, [router])
+
+    fetchData();
+
+  }, [router, currentPage])
+
+  const fetchData = async () => {
+    const response = await getAllUsers(currentPage, 5)
+    setUsers(response);
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    // This would normally fetch data for the new page
   }
 
   const handlePromoteToAdmin = (user: User) => {
@@ -127,14 +83,24 @@ export default function AdminUsersPage() {
     setIsPromoteDialogOpen(true)
   }
 
-  const confirmPromoteToAdmin = () => {
+  const confirmPromoteToAdmin = async () => {
     if (!userToPromote) return
+    try {
+      setUsers(users.map((user) => (user.id === userToPromote.id ? { ...user, type: 'admin' } : user)))
+      const response = await setUserAdmin(userToPromote.id);
+    } finally {
+      handleSuccess();
+      setIsPromoteDialogOpen(false)
+      setUserToPromote(null)
+    }
+  }
 
-    // In a real app, this would be an API call
-    setUsers(users.map((user) => (user.id === userToPromote.id ? { ...user, isAdmin: true } : user)))
-
-    setIsPromoteDialogOpen(false)
-    setUserToPromote(null)
+  const handleSuccess = () => {
+    toast({
+      title: "Success",
+      description: `${userToPromote.name} is now an Admin!`,
+      variant: "success"
+    })
   }
 
   if (!isAuthorized) {
@@ -158,10 +124,6 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground">Manage user accounts and permissions</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
       </div>
 
       <Card>
@@ -170,7 +132,7 @@ export default function AdminUsersPage() {
           <CardDescription>View and manage all users in the system</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center space-x-2 mb-6">
+          {/* <div className="flex w-full items-center space-x-2 mb-6">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -180,7 +142,7 @@ export default function AdminUsersPage() {
                 className="w-full pl-8"
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-md border">
             <Table>
@@ -188,8 +150,6 @@ export default function AdminUsersPage() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined</TableHead>
                   <TableHead>Campaigns</TableHead>
                   <TableHead>Characters</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
@@ -212,20 +172,16 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {user.isAdmin ? (
+                        {user.type === 'admin' ? (
                           <Badge className="bg-yellow-600 hover:bg-yellow-700">
                             <Shield className="mr-1 h-3 w-3" />
                             Admin
                           </Badge>
                         ) : (
-                          <Badge variant="outline">{user.type === "gamemaster" ? "Game Master" : "Player"}</Badge>
+                          <Badge variant="outline">{user.type === "gamemaster" ? "Player" : "Player"}</Badge>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === "active" ? "default" : "secondary"}>{user.status}</Badge>
-                    </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>{user.campaigns}</TableCell>
                     <TableCell>{user.characters}</TableCell>
                     <TableCell>
@@ -244,19 +200,17 @@ export default function AdminUsersPage() {
                               View Profile
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit User</DropdownMenuItem>
-                          <DropdownMenuItem>Reset Password</DropdownMenuItem>
-                          {!user.isAdmin && (
+                          {user.type !== 'admin' && (
                             <DropdownMenuItem onClick={() => handlePromoteToAdmin(user)}>
                               <ShieldCheck className="mr-2 h-4 w-4" />
                               Make Admin
                             </DropdownMenuItem>
                           )}
-                          {!user.isAdmin && (
+                          {/* {!user.isAdmin && (
                             <DropdownMenuItem>
                               {user.status === "active" ? "Deactivate" : "Activate"} User
                             </DropdownMenuItem>
-                          )}
+                          )} */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

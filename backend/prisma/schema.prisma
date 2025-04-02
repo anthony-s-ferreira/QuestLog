@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
@@ -20,51 +17,49 @@ model EventType {
   name        String
   description String
 
-  Event Event[]
+  events      Event[] // Relacionamento bidirecional com Event
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
-  password String
-  name     String
-  type     UserType
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  password   String
+  name       String
+  type       UserType
 
-  RPG        RPG[]
-  characters Character[]
+  RPGs       RPG[]       @relation("UserRPGs")
+  characters Character[] @relation("UserCharacters")
 }
 
 model RPG {
-  id          Int     @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String
   masterid    Int
-  active      Boolean @default(true)
-  master      User    @relation(fields: [masterid], references: [id])
+  active      Boolean      @default(true)
+  master      User         @relation("UserRPGs", fields: [masterid], references: [id], onDelete: Cascade)
 
-  characters Character[]
+  characters  Character[]  @relation("RPGCharacters")
 }
 
 model Character {
-  id      Int    @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   name    String
   ownerId Int
-  owner   User   @relation(fields: [ownerId], references: [id])
-
-  rpgId Int
-  rpg   RPG @relation(fields: [rpgId], references: [id])
-  events Event[]
+  owner   User     @relation("UserCharacters", fields: [ownerId], references: [id], onDelete: Cascade)
+  rpgId   Int
+  rpg     RPG      @relation("RPGCharacters", fields: [rpgId], references: [id], onDelete: Cascade)
+  events  Event[]  @relation("CharacterEvents")
 }
 
 model Event {
-  id Int @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   description String
   characterId Int
-  createdAt DateTime @default(now())
-  typeId Int
-  type EventType @relation(fields: [typeId], references: [id])
-
-  character Character @relation(fields: [characterId], references: [id])
+  createdAt   DateTime    @default(now())
+  typeId      Int
+  type        EventType   @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  character   Character   @relation("CharacterEvents", fields: [characterId], references: [id], onDelete: Cascade)
 }
 
 enum UserType {

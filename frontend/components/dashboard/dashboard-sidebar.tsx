@@ -76,11 +76,11 @@ export function DashboardSidebar({ setOpen }: DashboardSidebarProps) {
       icon: CalendarDays,
       href: "/dashboard/admin/events",
     },
-    {
-      label: "Event Types",
-      icon: BookOpen,
-      href: "/dashboard/admin/event-types",
-    },
+    // {
+    //   label: "Event Types",
+    //   icon: BookOpen,
+    //   href: "/dashboard/admin/event-types",
+    // },
   ]
 
   const filteredRoutes = routes.filter((route) => !route.adminOnly || (route.adminOnly && userIsAdmin))

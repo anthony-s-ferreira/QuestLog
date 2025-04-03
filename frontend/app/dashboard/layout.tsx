@@ -10,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const { user, loading: loadingAuth } = useAuth(); 
-  if (loadingAuth) return <p>Carregando...</p>; 
+  if (loadingAuth) return <p>Loading...</p>; 
 
   return (
     <div className="flex min-h-screen flex-col">

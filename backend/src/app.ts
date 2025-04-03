@@ -23,7 +23,7 @@ app.use(
 const port = process.env.PORT || 3000;
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests limit from IP
+  max: 100000, // 100000 requests limit from IP
   message: { error: 'Too many requests, try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

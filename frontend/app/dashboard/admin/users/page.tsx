@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation"
-import { ShieldAlert, Search, Plus, MoreHorizontal, Shield, ShieldCheck } from "lucide-react"
+import { ShieldAlert, Search, Plus, MoreHorizontal, Shield, ShieldCheck, Trash } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +40,7 @@ import {
 import Link from "next/link"
 import { getAllUsers, setUserAdmin } from "@/services/adminService"
 import { useToast } from "@/hooks/use-toast"
+import { deleteUser } from "@/services/userService"
 
 export default function AdminUsersPage() {
   const router = useRouter()
@@ -52,8 +53,10 @@ export default function AdminUsersPage() {
   const [userToPromote, setUserToPromote] = useState<User | null>(null)
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([
-    
+  
   ])
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
 
   useEffect(() => {
     // Check if user is admin
@@ -99,6 +102,33 @@ export default function AdminUsersPage() {
     toast({
       title: "Success",
       description: `${userToPromote.name} is now an Admin!`,
+      variant: "success"
+    })
+  }
+
+  const handleDelete = (user) => {
+    setUserToDelete(user)
+    setIsDeleteDialogOpen(true)
+  }
+
+
+  const confirmDelete = async () => {
+    try {
+      await deleteUser(userToDelete.id);
+      handleDeleteSuccess();
+      setUsers(users.filter((user) => user.id !== userToDelete.id))
+    } catch {
+      
+    } finally {
+      setIsDeleteDialogOpen(false)
+      setUserToDelete(null)
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    toast({
+      title: "Success",
+      description: `${userToDelete.name} deleted.`,
       variant: "success"
     })
   }
@@ -206,6 +236,13 @@ export default function AdminUsersPage() {
                               Make Admin
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(user)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
                           {/* {!user.isAdmin && (
                             <DropdownMenuItem>
                               {user.status === "active" ? "Deactivate" : "Activate"} User
@@ -300,6 +337,24 @@ export default function AdminUsersPage() {
             <AlertDialogAction onClick={confirmPromoteToAdmin} className="bg-yellow-600 hover:bg-yellow-700">
               <Shield className="mr-2 h-4 w-4" />
               Promote to Admin
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the user "{userToDelete?.name}". 
+            This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

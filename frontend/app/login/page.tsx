@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Scroll } from "lucide-react"
+import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const { user, signIn } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false)
-
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -21,7 +22,7 @@ export default function Login() {
     if (user) {
       router.push("/dashboard");
     }
-  }, [user, router]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,10 +30,30 @@ export default function Login() {
     try {
       await signIn(email, password);
       router.push("/dashboard");
+      handleSuccess();
     } catch (err) {
+      handleError(err);
       console.error("Erro ao logar:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleError = (error) => {
+    toast({
+      title: "Error",
+      description: error.response?.data?.message,
+      variant: "destructive",
+    }) 
+  }
+
+  const handleSuccess = () => {
+    toast({
+      title: "Success",
+      description: "Login successful!",
+      variant: "success",
+    });
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -60,9 +81,9 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                {/* <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                   Forgot password?
-                </Link>
+                </Link> */}
               </div>
               <Input
                 id="password"

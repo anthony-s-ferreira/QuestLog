@@ -36,7 +36,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     try {
         validateUserLoginBody(req.body, res);
-        const token = await authService.login(email, password);
+        const token = await authService.login(email, password, res);
         res.status(200).json({ token });
     } catch (error: Error | any) {
         console.log({ message: "Error logging in", error: error.message });

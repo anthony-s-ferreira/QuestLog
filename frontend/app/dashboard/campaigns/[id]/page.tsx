@@ -9,7 +9,7 @@ import Link from "next/link"
 import { CampaignCharacters } from "@/components/dashboard/campaign-characters"
 import { CampaignEvents } from "@/components/dashboard/campaign-events"
 import { useEffect, useState } from "react"
-import { changeRpgStatus, getRPGById, getRPGCharactersById, getRPGEventsById } from "@/services/rpgService"
+import { changeRpgStatus, deleteRpg, getRPGById, getRPGCharactersById, getRPGEventsById } from "@/services/rpgService"
 import { useParams } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import {
@@ -22,6 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function CampaignPage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
@@ -33,6 +35,10 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
   const { id } = useParams()
   const campaignId = parseInt(id as string)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const { toast } = useToast();
+  const router = useRouter();
+
   useEffect(() => {
       try{
         setLoading(true)
@@ -68,8 +74,27 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
       console.log(error.response?.data?.message)
     }
     
-
   };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteRpg(Number(id));
+      handleDeleteSuccess()
+      router.push("/dashboard")
+    } catch {
+      
+    } finally {
+      setIsDeleteDialogOpen(false)
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    toast({
+      title: "Success",
+      description: `Campaign ${campaign.name} deleted.`,
+      variant: "success"
+    })
+  }
 
   const getLoading = () => {
     return <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-50"></div>
@@ -98,9 +123,16 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
         <div className="flex items-center gap-2">
           {loading ? getLoading() : <Badge variant={campaign.active ? "default" : "secondary"}>{campaign.active ? 'Active' : 'Hiatus'}</Badge>}
             {!loading && campaign.master.id === user.id ? <Button variant="outline"  onClick={() => setIsDialogOpen(true)} disabled={loading}>Change status</Button> : <></>}
-          <Link href={`/dashboard/campaigns/${campaignId}/edit`}>
-            <Button variant="outline" disabled={loading}>Edit Campaign</Button>
-          </Link>
+          {}
+          
+          {!loading && (campaign.master.id === user.id || user.type === 'admin') ? 
+          <>
+            <Link href={`/dashboard/campaigns/${campaignId}/edit`}>
+              <Button variant="outline" disabled={loading}>Edit Campaign</Button>
+            </Link>
+            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>Delete Campaign</Button> 
+          </>: <></>}
+          
         </div>
       </div>
 
@@ -215,9 +247,25 @@ export default function CampaignPage({ params }: { params: { id: string } }) {
           )}
         
       </Tabs>
-        
-      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the campaign "{campaign?.name}". 
+            This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+    
     
   )
 }

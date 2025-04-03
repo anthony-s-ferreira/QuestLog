@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { deleteUser, updateUser } from "@/services/userService"
+import { deleteUser, updateUser, updateUserPassword } from "@/services/userService"
 import { useAuth } from "@/context/AuthContext"
 import {
   CalendarDays,
@@ -97,7 +97,7 @@ export default function ProfilePage() {
     }
   }
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     setIsChangingPassword(true)
 
     if (!currentPassword) {
@@ -130,19 +130,17 @@ export default function ProfilePage() {
       return
     }
 
-    // Simulação de chamada API para alteração de senha
-    setTimeout(() => {
-      toast({
-        title: "Success",
-        description: "Your password has been updated successfully",
-        variant: "success",
-      })
-      setIsChangingPassword(false)
-      setIsChangePasswordDialogOpen(false)
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
-    }, 1500)
+    await updateUserPassword(user.id, { password: currentPassword, newPassword: newPassword });
+    toast({
+      title: "Success",
+      description: "Your password has been updated successfully",
+      variant: "success",
+    })
+    setIsChangingPassword(false)
+    setIsChangePasswordDialogOpen(false)
+    setCurrentPassword("")
+    setNewPassword("")
+    setConfirmPassword("")
   }
 
   const handleDeleteAccount = async () => {
@@ -164,7 +162,6 @@ export default function ProfilePage() {
       description: "Your account has been permanently deleted",
       variant: "destructive",
     })
-    console.log(user.id)
     await deleteUser(user.id);
     setIsDeleting(false)
     setIsDeleteAccountDialogOpen(false)

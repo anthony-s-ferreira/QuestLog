@@ -4,17 +4,35 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, Plus, Scroll } from "lucide-react";
+import { CalendarDays, Plus, Scroll, Trash } from "lucide-react";
 import Link from "next/link";
 import { CharacterEvents } from "@/components/dashboard/character-events";
 import { useEffect, useState } from "react";
-import { getCharacterById } from "@/services/characterService";
+import { deleteCharacter, getCharacterById } from "@/services/characterService";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
+
 
 export default function CharacterPage() {
+  const { user } = useAuth();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +49,26 @@ export default function CharacterPage() {
 
     fetchData();
   }, [id]);
+
+  const confirmDelete = async () => {
+    try {
+      await deleteCharacter(Number(id));
+      handleDeleteSuccess()
+      router.push("/dashboard")
+    } catch {
+      
+    } finally {
+      setIsDeleteDialogOpen(false)
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    toast({
+      title: "Success",
+      description: `Character ${character.name} deleted.`,
+      variant: "success"
+    })
+  }
 
   if (loading) {
     return (
@@ -53,9 +91,16 @@ export default function CharacterPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">{character.name}</h1>
         <div className="flex items-center gap-2">
+        {!loading && (character.owner.id === user.id || user.type === 'admin') ? <>
           <Link href={`/dashboard/characters/${id}/edit`}>
             <Button variant="outline">Edit Character</Button>
           </Link>
+          <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+            <Trash></Trash>
+            Delete Character
+          </Button> 
+        </>
+           : <></>}
         </div>
       </div>
 
@@ -172,6 +217,24 @@ export default function CharacterPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the character "{character?.name}". 
+            This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

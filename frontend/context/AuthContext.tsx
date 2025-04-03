@@ -68,19 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-
-      const { token, user } = await authService.login(email, password);
-      Cookies.set("authToken", token, {
-        expires: 7,
-        secure: true,
-        sameSite: "Strict"
-      })
-      await fetchUser();
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Erro ao fazer login:", error);
-    }
+    const { token, user } = await authService.login(email, password);
+    Cookies.set("authToken", token, {
+      expires: 7,
+      secure: true,
+      sameSite: "Strict"
+    })
+    await fetchUser();
   };
 
   const signOut = () => {

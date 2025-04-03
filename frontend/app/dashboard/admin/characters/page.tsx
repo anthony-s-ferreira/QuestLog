@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation"
-import { ShieldAlert, Search, Plus, MoreHorizontal, Scroll, User } from "lucide-react"
+import { ShieldAlert, Search, Plus, MoreHorizontal, Scroll, User, Trash } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,19 @@ import {
 } from "@/components/ui/pagination"
 import Link from "next/link"
 import { getAllCharacters } from "@/services/adminService"
+import { useToast } from "@/hooks/use-toast"
+import { deleteCharacter } from "@/services/characterService"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 
 export default function AdminCharactersPage() {
   const router = useRouter()
@@ -37,6 +50,10 @@ export default function AdminCharactersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(5)
   const [characters, setCharacters] = useState([])
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [characterToDelete, setCharacterToDelete] = useState(null)
+  const { toast } = useToast();
+
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
@@ -56,6 +73,32 @@ export default function AdminCharactersPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleDelete = (character) => {
+      setCharacterToDelete(character)
+      setIsDeleteDialogOpen(true)
+  }
+  
+  const confirmDelete = async () => {
+    try {
+      await deleteCharacter(characterToDelete.id);
+      setCharacters((prev) => prev.filter((character) => character.id !== characterToDelete.id))
+      handleDeleteSuccess()
+    } catch {
+      
+    } finally {
+      setIsDeleteDialogOpen(false)
+      setCharacterToDelete(null)
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    toast({
+      title: "Success",
+      description: `Character "${characterToDelete.name}" deleted.`,
+      variant: "success"
+    })
   }
 
   if (!isAuthorized) {
@@ -161,11 +204,13 @@ export default function AdminCharactersPage() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => router.push(`/dashboard/characters/${character.id}`)}>View Character</DropdownMenuItem>
-                          {/* <DropdownMenuItem>Edit Character</DropdownMenuItem>
-                          <DropdownMenuItem>View Events</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            Delete Character
-                          </DropdownMenuItem> */}
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(character)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -239,6 +284,24 @@ export default function AdminCharactersPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the character "{characterToDelete?.name}". 
+            This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

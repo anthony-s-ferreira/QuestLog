@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation"
-import { ShieldAlert, Search, Plus, MoreHorizontal, CalendarDays, User, Scroll } from "lucide-react"
+import { ShieldAlert, Search, Plus, MoreHorizontal, CalendarDays, User, Scroll, Trash } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,19 @@ import {
 } from "@/components/ui/pagination"
 import Link from "next/link"
 import { getAllEvents } from "@/services/adminService"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { deleteEvent } from "@/services/eventService"
+
 
 export default function AdminEventsPage() {
   const router = useRouter()
@@ -37,6 +50,10 @@ export default function AdminEventsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(8)
   const [events, setEvents] = useState([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [eventToDelete, setEventToDelete] = useState(null)
+  const { toast } = useToast();
+
   useEffect(() => {
     // Check if user is admin
     const adminCheck = isAdmin()
@@ -56,6 +73,32 @@ export default function AdminEventsPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleDelete = (event) => {
+        setEventToDelete(event)
+        setIsDeleteDialogOpen(true)
+  }
+  
+  const confirmDelete = async () => {
+    try {
+      await deleteEvent(eventToDelete.id);
+      setEvents((prev) => prev.filter((event) => event.id !== eventToDelete.id))
+      handleDeleteSuccess()
+    } catch {
+      
+    } finally {
+      setIsDeleteDialogOpen(false)
+      setEventToDelete(null)
+    }
+  }
+
+  const handleDeleteSuccess = () => {
+    toast({
+      title: "Success",
+      description: `Event deleted.`,
+      variant: "success"
+    })
   }
 
   if (!isAuthorized) {
@@ -164,8 +207,12 @@ export default function AdminEventsPage() {
                           <DropdownMenuSeparator />
                           {/* <DropdownMenuItem onClick={() => router.push(`/dashboard/events/${event.id}`)}>View Event</DropdownMenuItem> */}
                           {/* <DropdownMenuItem>Edit Event</DropdownMenuItem> */}
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            Delete Event
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(event)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -240,6 +287,24 @@ export default function AdminEventsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the event. 
+            This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation"
-import { ShieldAlert, Search, Plus, MoreHorizontal, Scroll, Users, CalendarDays } from "lucide-react"
+import { ShieldAlert, Search, Plus, MoreHorizontal, Scroll, Users, CalendarDays, Trash } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,19 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { getAllRPGs } from "@/services/adminService"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { deleteRpg } from "@/services/rpgService"
+import { useToast } from "@/hooks/use-toast"
+
 
 export default function AdminCampaignsPage() {
   const router = useRouter()
@@ -37,20 +50,21 @@ export default function AdminCampaignsPage() {
   const [totalPages, setTotalPages] = useState(100)
   const { user, signIn, signOut, isAdmin } = useAuth();
   const [campaigns, setCampaigns] = useState([])
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [campaignToDelete, setCampaignToDelete] = useState(null)
+  const { toast } = useToast();
+
   useEffect(() => {
-    // Check if user is admin
     const adminCheck = isAdmin()
     setIsAuthorized(adminCheck)
 
     if (!adminCheck) {
-      // Redirect to dashboard if not admin
       router.push("/dashboard")
     }
     fetchData()
 
   }, [router, currentPage])
 
-  // This would normally fetch data from the API
   const fetchData = async () => {
     const rpgs = await getAllRPGs(currentPage, 10);
     setCampaigns(rpgs)
@@ -58,8 +72,33 @@ export default function AdminCampaignsPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    // This would normally fetch data for the new page
   }
+
+  const handleDelete = (campaign) => {
+    setCampaignToDelete(campaign)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+      try {
+        await deleteRpg(campaignToDelete.id);
+        setCampaigns((prevCampaigns) => prevCampaigns.filter((campaign) => campaign.id !== campaignToDelete.id))
+        handleDeleteSuccess()
+      } catch {
+        
+      } finally {
+        setIsDeleteDialogOpen(false)
+        setCampaignToDelete(null)
+      }
+    }
+  
+    const handleDeleteSuccess = () => {
+      toast({
+        title: "Success",
+        description: `Campaign "${campaignToDelete.name}" deleted.`,
+        variant: "success"
+      })
+    }
 
   if (!isAuthorized) {
     return (
@@ -172,11 +211,13 @@ export default function AdminCampaignsPage() {
                         >
                           View Campaign
                         </DropdownMenuItem>
-                        {/* <DropdownMenuItem
-                          onClick={() => handleDeleteCampaign(campaign.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem> */}
+                        <DropdownMenuItem
+                            onClick={() => handleDelete(campaign)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                     </TableCell>
@@ -250,6 +291,24 @@ export default function AdminCampaignsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This will permanently delete the campaign "{campaignToDelete?.name}". 
+            This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

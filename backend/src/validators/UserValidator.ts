@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { validateId } from './CommonValidator';
 import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 import * as repository from '../repositories/prismaUserRepository';
+import bcrypt from 'bcrypt';
 
 /**
  * Validates the request body for creating or updating a user.
@@ -148,7 +149,7 @@ export const validateUserExists = async (id: number) => {
  */
 export const validateNewPassword = async (id: number, password: string, newPassword: string) => {
     const user = await repository.getUserById(id);
-    if (user.password !== password) {
+    if (await bcrypt.compare(password, user.password)) {
         throw new Error('Current password is incorrect');
     }
     if (user.password === newPassword) {
@@ -168,7 +169,6 @@ export const validateUserPasswordUpdate = async (id: number, password: string, n
     try {
         validateUserPassword(password);
         validateNewPassword(id, password, newPassword);
-        
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

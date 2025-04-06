@@ -4,9 +4,11 @@ import { validateRequestBody, validateRPGId, validateRPGStatusPatch } from '../v
 import { RPGFormDTO } from '../domain/formDTO/RpgFormDTO';
 import { EventService } from '../services/EventService';
 import { validatePageAndLimit } from '../validators/CommonValidator';
+import { CharacterService } from '../services/CharacterService';
 
 const rpgService = new RpgService();
 const eventService = new EventService();
+const characterService = new CharacterService();
 
 /**
  * Creates a new RPG.
@@ -52,7 +54,7 @@ export const getAllRPGs = async (req: Request, res: Response) => {
  * @param res - Express response object
  */
 export const getRPGsByUserId = async (req: Request, res: Response) => {
-    const { userId } = req.body.userId;
+    const { userId } = req.body;
     try {
         const rpgs = await rpgService.getRPGByUserId(Number(userId));
         res.status(200).json(rpgs);
@@ -85,6 +87,18 @@ export const getRPGEvents = async (req: Request, res: Response) => {
     }
 };
 
+export const getRPGCharacters = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        validateRPGId(Number(id), res);
+        const characters = await characterService.getRPGCharacters(Number(id));
+        res.status(200).json(characters);
+    } catch {
+        console.log('Error getting RPG characters:', error);
+    }
+};
+
 /**
  * Retrieves an RPG by ID.
  * 
@@ -100,6 +114,23 @@ export const getRPGById = async (req: Request, res: Response) => {
         res.status(200).json(rpg);
     } catch (error: Error | any) {
         console.log('Error getting RPG:', error);
+    }
+};
+
+/**
+ * Retrieves all RPGs with their IDs and names.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * 
+ * @returns A list of all RPGs with their IDs and names.
+ */
+export const getRPGSelect = async (req: Request, res: Response) => {
+    try {
+        const rpgs = await rpgService.getRPGSelect();
+        res.status(200).json(rpgs);
+    } catch (error: Error | any) {
+        console.log('Error getting RPG select:', error);
     }
 };
 
@@ -132,7 +163,6 @@ export const updateRPG = async (req: Request, res: Response) => {
 export const updateRPGStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
-
     try {
         await validateRPGId(Number(id), res);
         validateRPGStatusPatch(status, res);

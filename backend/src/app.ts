@@ -11,10 +11,19 @@ import cors from "cors";
 import { adminRoutes } from './routes/AdminRoutes';
 
 const app: express.Application = express();
+
+app.use(
+  cors({
+    origin: ["https://editor.swagger.io/", "http://localhost:5000/", "https://app.swaggerhub.com", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 const port = process.env.PORT || 3000;
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests limit from IP
+  max: 100000, // 100000 requests limit from IP
   message: { error: 'Too many requests, try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -22,13 +31,7 @@ const limiter = rateLimit({
 
 //Configurations
 app.use(express.json());
-app.use(
-  cors({
-    origin: ["https://editor.swagger.io/", "http://localhost:3000/", "https://app.swaggerhub.com"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+
 app.use(limiter);
 app.use(helmet());
 

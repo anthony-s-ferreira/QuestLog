@@ -46,7 +46,8 @@ export class CharacterService {
         validatePage(page);
         validateLimit(limit);
         const characters = await repository.getAllCharacters(page, limit);
-        return await Promise.all(characters.map(char => this.convertCharacter(char)));}
+        return await Promise.all(characters.map(char => this.convertCharacter(char)));
+    }
 
     /**
      * Retrieves a character by ID.
@@ -59,6 +60,19 @@ export class CharacterService {
         await validateCharacterExists(id);
         const character = await repository.getCharacterById(id);
         return await this.convertCharacter(character);
+    }
+
+    /**
+     * Retrieves all characters associated with a specific RPG.
+     * 
+     * @param rpgId - The ID of the RPG.
+     * @returns A list of all characters associated with the RPG.
+     */
+    async getRPGCharacters(rpgId: number) {
+        validateId(rpgId, 'RPG');
+        await validateRPGExists(rpgId);
+        const characters = await repository.getCharactersByRPGId(rpgId);
+        return await Promise.all(characters.map(char => this.convertCharacter(char)));       
     }
 
     /**
@@ -90,6 +104,12 @@ export class CharacterService {
         return await repository.deleteCharacterById(id);
     }
 
+    /**
+     * Retrieves all characters associated with a specific user.
+     * 
+     * @param userId - The ID of the user.
+     * @returns A list of all characters associated with the user.
+     */
     async getCharactersByUserId(userId: number) {
         validateId(userId, 'User');
         await validateUserExists(userId);

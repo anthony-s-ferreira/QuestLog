@@ -5,6 +5,7 @@ import { UserFormDTO } from '../domain/formDTO/UserFormDTO';
 import { validateUserLoginBody } from '../validators/AuthValidator';
 import { AuthService } from '../services/AuthService';
 import { validatePageAndLimit } from '../validators/CommonValidator';
+import { UserType } from '../domain/enums/UserType';
 
 const userService = new UserService();
 const authService = new AuthService();
@@ -16,7 +17,7 @@ const authService = new AuthService();
  */
 export const createUser = async (req: Request, res: Response) => {
     const { name, email, password, type } = req.body;
-    const userForm: UserFormDTO = { name, email, password, type };
+    const userForm: UserFormDTO = { name, email, password, type: UserType.user };
     try {
         validateRequestBody(userForm, res);
         const user = await userService.createUser(userForm);
@@ -35,7 +36,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     try {
         validateUserLoginBody(req.body, res);
-        const token = await authService.login(email, password);
+        const token = await authService.login(email, password, res);
         res.status(200).json({ token });
     } catch (error: Error | any) {
         console.log({ message: "Error logging in", error: error.message });
@@ -87,8 +88,7 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, email, type, password } = req.body;
-    const userForm: UserFormDTO = { name, email, password, type };
-
+    const userForm: UserFormDTO = { name, email, password: 'u', type };
     try {
         await validateUserId(Number(id), res);
         validateRequestBody(userForm, res);
@@ -98,6 +98,24 @@ export const updateUser = async (req: Request, res: Response) => {
         console.log({ message: "Error updating user", error: error.message });
     }
 };
+
+
+/**
+ * Sets a user as an admin by ID.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const setUserAdmin = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        await validateUserId(Number(id), res);
+        const updatedUser = await userService.setUserAdmin(Number(id));
+        res.status(200).json(updatedUser);
+    } catch (error: Error | any) {
+        console.log({ message: "Error setting user admin", error: error.message });
+    }
+}
 
 /**
  * Updates a user's password by ID.
@@ -136,3 +154,21 @@ export const deleteUser = async (req: Request, res: Response) => {
         console.log({ message: "Error deleting user", error: error.message });
     }
 };
+
+/**
+ * Retrieves the user's profile.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const getProfile = async (req: Request, res: Response) => {
+    const { userId } = req.body;
+    try {
+        validateUserId(Number(userId), res);
+        const user = await userService.getUserById(Number(userId));
+        res.status(200).json(user);
+    } catch (error: Error | any) {
+        console.log({ message: "Error getting profile", error: error.message });
+    }
+};
+

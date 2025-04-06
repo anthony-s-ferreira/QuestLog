@@ -114,3 +114,20 @@ export const getCharactersByUserId = (userId: number) => {
         }
     });
 };
+
+export const getCharactersByRPGId = async (id: number) => {
+    const characters = await db.character.findMany({
+      where: {
+        rpgId: id
+      },
+      include: {
+        owner: true,
+        rpg: {
+          include: {
+            master: true
+          }
+        }
+      }
+    });
+    return characters;
+};

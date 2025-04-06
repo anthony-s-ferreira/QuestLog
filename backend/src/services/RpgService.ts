@@ -58,6 +58,19 @@ export class RpgService {
     }
 
     /**
+     * Retrieves all RPGS id and name.
+     * 
+     * @returns A list of all RPGs with their IDs and names.
+     */
+    async getRPGSelect() {
+        const rpgs = await this.getAllRPGs(1, 100000000000);
+        return rpgs.map(rpg => ({
+            id: rpg.id,
+            name: rpg.name
+        }));
+    }
+
+    /**
      * Updates an RPG by ID.
      * 
      * @param id - The ID of the RPG to be updated.
@@ -105,6 +118,9 @@ export class RpgService {
         const rpg = await repository.getRpgById(id);
         if (rpg) {
             rpg.active = active;
+            delete rpg.master;
+            delete rpg.id;
+            delete rpg.masterid;
             const updatedRpg = await repository.updateRPGStatus(id, rpg);
             return this.convertRPG(updatedRpg);
         }

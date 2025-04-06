@@ -1,6 +1,6 @@
 import * as repository from "../repositories/prismaUserRepository";
 import { User } from "../domain/entities/User";
-import { validateUserEmail, validateUserName, validateUserPassword, validateUserType } from "../validators/UserValidator";
+import { validateUserEmail, validateUserExists, validateUserName, validateUserPassword, validateUserType } from "../validators/UserValidator";
 import { validateId, validateLimit, validatePage } from "../validators/CommonValidator";
 import { UserDTO } from "../domain/DTO/UserDTO";
 import { UserFormDTO } from "../domain/formDTO/UserFormDTO";
@@ -9,6 +9,18 @@ import { generateToken } from "../config/jwt";
 import bcrypt from "bcrypt";
 
 export class UserService {
+
+    /**
+     * 
+     * @param userId 
+     * @returns 
+     */
+    async setUserAdmin(userId: number) {
+        validateId(userId, 'User');
+        validateUserExists(userId);
+        const updatedUser = await repository.setUserAdmin(userId);
+        return this.convertUser(updatedUser);
+    }
 
     /**
      * Creates a new user.
@@ -45,7 +57,7 @@ export class UserService {
 
         validatePage(page);
         validateLimit(limit);
-        const users = await repository.getAllUsers();
+        const users = await repository.getAllUsers(page, limit);
         return Promise.all(users.map(user => this.convertUser({
             ...user,
             type: user.type as UserType

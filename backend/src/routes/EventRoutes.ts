@@ -29,7 +29,7 @@ const router = Router();
  *             required:
  *               - description
  *               - characterId
- *               - typeId
+ *               - eventTypeId
  *             properties:
  *               description:
  *                 type: string
@@ -37,7 +37,7 @@ const router = Router();
  *               characterId:
  *                 type: integer
  *                 example: 5
- *               typeId:
+ *               eventTypeId:
  *                 type: integer
  *                 example: 2
  *     responses:
@@ -95,7 +95,7 @@ router.get("/event/:id", authMiddleware, EventEditPermissionMiddleware, getEvent
  *             required:
  *               - description
  *               - characterId
- *               - eventTypeId
+ *               - eventeventTypeId
  *             properties:
  *               description:
  *                 type: string
@@ -103,7 +103,7 @@ router.get("/event/:id", authMiddleware, EventEditPermissionMiddleware, getEvent
  *               characterId:
  *                 type: integer
  *                 example: 3
- *               eventTypeId:
+ *               eventeventTypeId:
  *                 type: integer
  *                 example: 1
  *     responses:

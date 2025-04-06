@@ -76,7 +76,7 @@ const UserEditPermissionMiddleware = async (req: Request, res: Response, next: N
     }
     else {
         const userId = req.params.id;
-        if (userId === req.body.userId) {
+        if (Number(userId) === req.body.userId) {
             next();
         }
         else {

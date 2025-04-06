@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createRPG, deleteRPG, getAllRPGs, getRPGById, getRPGEvents, getRPGsByUserId, updateRPG, updateRPGStatus } from "../controllers/RpgController";
+import { createRPG, deleteRPG, getAllRPGs, getRPGById, getRPGCharacters, getRPGEvents, getRPGsByUserId, updateRPG, updateRPGStatus } from "../controllers/RpgController";
 import authMiddleware from '../middlewares/authMiddleware';
 import { RPGEditPermissionMiddleware, RPGPermissionMiddleware } from "../middlewares/permissionMiddleware";
 
@@ -94,6 +94,73 @@ router.get('/rpgs', authMiddleware, getRPGsByUserId);
  *         description: RPG not found.
  */
 router.get('/rpg/:id/events', authMiddleware, RPGPermissionMiddleware, getRPGEvents);
+
+/**
+ * @swagger
+ * /rpg/{id}/characters:
+ *   get:
+ *     summary: Get all characters for an RPG
+ *     description: Retrieves a list of all characters associated with a specific RPG.
+ *     tags:
+ *       - RPGs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The RPG ID
+ *     responses:
+ *       200:
+ *         description: List of characters retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: "Thorne Ironheart"
+ *                   description:
+ *                     type: string
+ *                     example: "A brave warrior from the northern lands."
+ *                   rpgId:
+ *                     type: integer
+ *                     example: 1
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-03-26T12:34:56.789Z"
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-03-26T12:34:56.789Z"
+ *       400:
+ *         description: Invalid RPG ID.
+ *       404:
+ *         description: RPG not found.
+ */
+router.get('/rpg/:id/characters', authMiddleware, RPGPermissionMiddleware, getRPGCharacters);
+
+
+/**
+ * @swagger
+ * /rpgs/select:
+ *   get:
+ *     summary: Get all RPGs for selection
+ *     description: Retrieves a list of all RPGs for selection.
+ *     tags:
+ *       - RPGs
+ *     responses:
+ *       200:
+ *         description: List of RPGs retrieved successfully.
+ */
+router.get('/rpgs/select', authMiddleware, RPGPermissionMiddleware, getRPGsByUserId);
 
 /**
  * @swagger
